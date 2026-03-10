@@ -1,0 +1,1064 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fragrance Flash — Staff Training Game</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #c9a84c;
+    --gold-light: #e8c96a;
+    --bg: #0e0b08;
+    --card: #1a1510;
+    --card2: #221c14;
+    --text: #f0e8d8;
+    --muted: #8a7a60;
+    --accent: #d4704a;
+    --green: #5a9e6f;
+    --red: #c0443a;
+    --border: rgba(201,168,76,0.2);
+    --brand-color: #c9a84c;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; overflow-x: hidden; }
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background: radial-gradient(ellipse at 20% 20%, rgba(201,168,76,0.06) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 80%, rgba(212,112,74,0.04) 0%, transparent 60%);
+    pointer-events: none; z-index: 0;
+  }
+
+  .screen { display: none; position: relative; z-index: 1; }
+  .screen.active { display: flex; }
+
+  /* ===== HOME ===== */
+  #home { flex-direction: column; align-items: center; min-height: 100vh; padding: 2rem 1.5rem; }
+  .home-header { text-align: center; padding: 2.5rem 0 2rem; }
+  .home-header .logo-icon { font-size: 3rem; margin-bottom: 0.8rem; animation: float 3s ease-in-out infinite; display: block; }
+  @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+  .home-header h1 { font-family: 'Cormorant Garamond', serif; font-size: clamp(2.2rem, 6vw, 3.5rem); color: var(--gold); letter-spacing: -0.01em; }
+  .home-header p { font-size: 0.8rem; color: var(--muted); margin-top: 0.4rem; letter-spacing: 0.15em; text-transform: uppercase; }
+
+  .section-label { font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); margin: 1.5rem 0 0.8rem; width: 100%; max-width: 900px; }
+
+  /* Mode cards */
+  .mode-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.8rem; max-width: 900px; width: 100%; margin-bottom: 0.5rem; }
+  .mode-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 1.5rem 1.3rem; cursor: pointer; transition: all 0.25s; position: relative; overflow: hidden; }
+  .mode-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--brand-color, var(--gold)), transparent); opacity: 0; transition: opacity 0.25s; }
+  .mode-card:hover { transform: translateY(-3px); border-color: var(--brand-color, var(--gold)); background: var(--card2); }
+  .mode-card:hover::before { opacity: 1; }
+  .mode-icon { font-size: 1.8rem; margin-bottom: 0.8rem; }
+  .mode-card h3 { font-size: 1rem; font-weight: 600; color: var(--gold-light); margin-bottom: 0.3rem; }
+  .mode-card p { font-size: 0.78rem; color: var(--muted); line-height: 1.5; }
+  .mode-badge { display: inline-block; font-size: 0.6rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; padding: 2px 7px; border-radius: 999px; margin-top: 0.7rem; background: rgba(201,168,76,0.12); color: var(--gold); border: 1px solid rgba(201,168,76,0.25); }
+
+  /* Brand selector */
+  .brand-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 0.7rem; max-width: 900px; width: 100%; }
+  .brand-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.1rem 1rem; cursor: pointer; transition: all 0.2s; text-align: center; }
+  .brand-card:hover { transform: translateY(-2px); background: var(--card2); }
+  .brand-card.selected { border-color: var(--gold); background: rgba(201,168,76,0.08); }
+  .brand-card .b-icon { font-size: 1.6rem; margin-bottom: 0.5rem; }
+  .brand-card .b-name { font-size: 0.82rem; font-weight: 600; color: var(--gold-light); }
+  .brand-card .b-count { font-size: 0.68rem; color: var(--muted); margin-top: 0.2rem; }
+
+  /* Brand info modal */
+  .brand-info-btn { background: none; border: 1px solid var(--border); border-radius: 8px; padding: 0.35rem 0.8rem; color: var(--muted); font-size: 0.72rem; font-family: 'DM Sans', sans-serif; cursor: pointer; transition: all 0.2s; margin-top: 0.5rem; }
+  .brand-info-btn:hover { color: var(--gold); border-color: var(--gold); }
+
+  /* ===== BRAND STUDY SCREEN ===== */
+  #brandstudy { flex-direction: column; min-height: 100vh; padding: 1.5rem; max-width: 750px; margin: 0 auto; width: 100%; }
+  .study-nav { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+  .study-tab { background: none; border: 1px solid var(--border); border-radius: 8px; padding: 0.4rem 0.9rem; color: var(--muted); font-family: 'DM Sans', sans-serif; font-size: 0.78rem; cursor: pointer; transition: all 0.2s; }
+  .study-tab.active { border-color: var(--gold); color: var(--gold); background: rgba(201,168,76,0.08); }
+  .study-content { flex: 1; }
+  .brand-hero { background: var(--card); border: 1px solid var(--border); border-radius: 18px; padding: 2rem; margin-bottom: 1.5rem; }
+  .brand-hero-name { font-family: 'Cormorant Garamond', serif; font-size: 2rem; color: var(--gold); margin-bottom: 0.3rem; }
+  .brand-hero-tagline { font-size: 0.82rem; color: var(--muted); font-style: italic; margin-bottom: 1.2rem; padding-bottom: 1.2rem; border-bottom: 1px solid var(--border); }
+  .brand-stats { display: flex; gap: 2rem; flex-wrap: wrap; }
+  .brand-stat { }
+  .brand-stat .stat-val { font-size: 1.3rem; font-weight: 600; color: var(--gold-light); }
+  .brand-stat .stat-lbl { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); }
+  .brand-history { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 1.5rem; margin-bottom: 1rem; }
+  .brand-history h3 { font-size: 0.7rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gold); margin-bottom: 0.8rem; }
+  .brand-history p { font-size: 0.85rem; color: var(--text); line-height: 1.7; }
+  .brand-history p + p { margin-top: 0.8rem; }
+  .selling-points { display: grid; gap: 0.6rem; }
+  .selling-point { background: var(--card2); border-radius: 10px; padding: 0.9rem 1.1rem; display: flex; gap: 0.8rem; align-items: flex-start; }
+  .selling-point .sp-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 0.1rem; }
+  .selling-point .sp-text { font-size: 0.82rem; line-height: 1.5; color: var(--text); }
+  .selling-point .sp-text strong { color: var(--gold-light); }
+  .product-list-study { display: grid; gap: 0.5rem; }
+  .pls-item { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 0.9rem 1.1rem; }
+  .pls-item .pls-name { font-size: 0.88rem; font-weight: 600; color: var(--gold-light); margin-bottom: 0.25rem; }
+  .pls-item .pls-notes { font-size: 0.75rem; color: var(--muted); line-height: 1.4; }
+  .pls-item .pls-inspo { font-size: 0.7rem; color: var(--accent); margin-top: 0.3rem; font-style: italic; }
+  .pls-item .pls-price { font-size: 0.72rem; color: var(--gold); margin-top: 0.3rem; }
+  .pls-badges { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-top: 0.4rem; }
+  .pls-badge { font-size: 0.6rem; padding: 1px 6px; border-radius: 999px; border: 1px solid var(--border); color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+  .pls-badge.female { border-color: rgba(212,112,74,0.4); color: #e8906a; }
+  .pls-badge.male { border-color: rgba(90,158,200,0.4); color: #7ab8d8; }
+  .pls-badge.unisex { border-color: rgba(201,168,76,0.4); color: var(--gold); }
+
+  /* ===== QUIZ ===== */
+  #quiz { flex-direction: column; min-height: 100vh; padding: 1.5rem; max-width: 700px; margin: 0 auto; width: 100%; }
+  .quiz-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); }
+  .back-btn { background: none; border: 1px solid var(--border); color: var(--muted); padding: 0.4rem 1rem; border-radius: 8px; cursor: pointer; font-size: 0.82rem; font-family: 'DM Sans', sans-serif; transition: all 0.2s; }
+  .back-btn:hover { color: var(--text); border-color: var(--muted); }
+  .score-display { display: flex; gap: 1.5rem; }
+  .score-item { text-align: center; }
+  .score-item .val { font-size: 1.3rem; font-weight: 600; color: var(--gold); }
+  .score-item .lbl { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); }
+  .progress-bar { height: 3px; background: rgba(255,255,255,0.07); border-radius: 99px; margin-bottom: 2rem; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--gold), var(--gold-light)); border-radius: 99px; transition: width 0.5s ease; }
+  .category-tag { display: inline-block; font-size: 0.68rem; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.8rem; }
+  .question-card { background: var(--card); border: 1px solid var(--border); border-radius: 18px; padding: 1.8rem; margin-bottom: 1.2rem; }
+  .question-text { font-family: 'Cormorant Garamond', serif; font-size: clamp(1.15rem, 3vw, 1.45rem); line-height: 1.4; }
+  .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.65rem; margin-bottom: 1.2rem; }
+  @media(max-width:500px){ .options-grid { grid-template-columns: 1fr; } }
+  .option-btn { background: var(--card); border: 1px solid var(--border); border-radius: 11px; padding: 0.9rem 1.1rem; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 0.85rem; text-align: left; cursor: pointer; transition: all 0.2s; line-height: 1.4; }
+  .option-btn:hover:not(:disabled) { background: var(--card2); border-color: var(--gold); transform: translateY(-1px); }
+  .option-btn.correct { background: rgba(90,158,111,0.18); border-color: var(--green); color: #8fe0a8; }
+  .option-btn.wrong { background: rgba(192,68,58,0.18); border-color: var(--red); color: #f09090; }
+  .option-btn:disabled { cursor: default; }
+  .feedback-box { background: var(--card2); border-radius: 12px; padding: 1.1rem 1.4rem; margin-bottom: 1.2rem; border-left: 3px solid var(--green); display: none; animation: slideIn 0.3s ease; }
+  .feedback-box.wrong-fb { border-left-color: var(--red); }
+  @keyframes slideIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+  .feedback-box .fb-title { font-weight: 600; font-size: 0.88rem; margin-bottom: 0.35rem; color: var(--gold-light); }
+  .feedback-box .fb-text { font-size: 0.82rem; color: var(--muted); line-height: 1.6; }
+  .next-btn { width: 100%; background: linear-gradient(135deg, var(--gold), var(--gold-light)); border: none; border-radius: 11px; padding: 0.95rem; color: #1a1000; font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: all 0.2s; display: none; }
+  .next-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+
+  /* ===== FLASHCARD ===== */
+  #flashcard { flex-direction: column; min-height: 100vh; padding: 1.5rem; max-width: 600px; margin: 0 auto; width: 100%; align-items: center; justify-content: center; }
+  .fc-header { width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+  .fc-counter { font-size: 0.82rem; color: var(--muted); }
+  .flashcard-wrap { width: 100%; perspective: 1000px; margin-bottom: 1.5rem; cursor: pointer; }
+  .flashcard-inner { width: 100%; min-height: 280px; position: relative; transform-style: preserve-3d; transition: transform 0.55s cubic-bezier(0.4,0,0.2,1); }
+  .flashcard-inner.flipped { transform: rotateY(180deg); }
+  .fc-face { position: absolute; inset: 0; background: var(--card); border: 1px solid var(--border); border-radius: 22px; backface-visibility: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem; text-align: center; }
+  .fc-back { transform: rotateY(180deg); background: var(--card2); }
+  .fc-label { font-size: 0.62rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); margin-bottom: 1rem; }
+  .fc-content { font-family: 'Cormorant Garamond', serif; font-size: clamp(1.1rem, 3vw, 1.35rem); line-height: 1.5; }
+  .fc-sub { font-size: 0.78rem; color: var(--muted); margin-top: 1rem; line-height: 1.6; text-align: left; width: 100%; }
+  .fc-inspo { font-size: 0.72rem; color: var(--accent); margin-top: 0.6rem; font-style: italic; }
+  .fc-tap-hint { font-size: 0.68rem; color: var(--muted); margin-top: 1.2rem; }
+  .fc-actions { display: flex; gap: 1rem; width: 100%; }
+  .fc-btn { flex: 1; padding: 0.85rem; border-radius: 11px; border: 1px solid var(--border); background: var(--card); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 0.88rem; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+  .fc-btn:hover { background: var(--card2); border-color: var(--gold); }
+  .fc-btn.knew { color: var(--green); border-color: rgba(90,158,111,0.35); }
+  .fc-btn.knew:hover { background: rgba(90,158,111,0.08); }
+  .fc-btn.missed { color: #f09090; border-color: rgba(192,68,58,0.35); }
+  .fc-btn.missed:hover { background: rgba(192,68,58,0.08); }
+
+  /* ===== PRICE GAME ===== */
+  #pricegame { flex-direction: column; min-height: 100vh; padding: 1.5rem; max-width: 600px; margin: 0 auto; width: 100%; }
+  .price-product { background: var(--card); border: 1px solid var(--border); border-radius: 18px; padding: 1.8rem; margin-bottom: 1.2rem; text-align: center; }
+  .price-brand-tag { font-size: 0.68rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); margin-bottom: 0.8rem; }
+  .price-name { font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; margin-bottom: 0.4rem; }
+  .price-notes { font-size: 0.8rem; color: var(--muted); font-style: italic; margin-bottom: 0.4rem; }
+  .price-inspo { font-size: 0.72rem; color: var(--accent); font-style: italic; }
+  .price-input-wrap { display: flex; align-items: center; gap: 0.5rem; margin: 1.3rem 0; }
+  .price-dollar { font-size: 1.4rem; font-family: 'Cormorant Garamond', serif; color: var(--gold); }
+  .price-input { flex: 1; background: var(--card2); border: 2px solid var(--border); border-radius: 10px; padding: 0.75rem 1rem; color: var(--text); font-size: 1.4rem; font-family: 'DM Sans', sans-serif; text-align: center; outline: none; transition: border-color 0.2s; }
+  .price-input:focus { border-color: var(--gold); }
+  .price-submit { background: linear-gradient(135deg, var(--gold), var(--gold-light)); border: none; border-radius: 10px; padding: 0.75rem 1.3rem; color: #1a1000; font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 0.95rem; cursor: pointer; transition: all 0.2s; }
+  .price-submit:hover { opacity: 0.9; }
+  .price-result { font-size: 0.95rem; padding: 0.9rem; border-radius: 10px; text-align: center; display: none; margin-bottom: 0.8rem; animation: slideIn 0.3s ease; }
+  .price-result.correct-price { background: rgba(90,158,111,0.12); color: #8fe0a8; border: 1px solid rgba(90,158,111,0.3); }
+  .price-result.wrong-price { background: rgba(192,68,58,0.12); color: #f09090; border: 1px solid rgba(192,68,58,0.3); }
+  .price-result.close-price { background: rgba(201,168,76,0.12); color: var(--gold-light); border: 1px solid rgba(201,168,76,0.3); }
+
+  /* ===== RESULTS ===== */
+  #results { flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 2rem; text-align: center; }
+  .results-trophy { font-size: 3.5rem; margin-bottom: 1.2rem; animation: float 3s ease-in-out infinite; }
+  .results-title { font-family: 'Cormorant Garamond', serif; font-size: 2.2rem; color: var(--gold); margin-bottom: 0.4rem; }
+  .results-sub { color: var(--muted); margin-bottom: 1.5rem; font-size: 0.88rem; }
+  .results-score { font-size: 3.5rem; font-weight: 700; color: var(--gold-light); margin-bottom: 0.4rem; }
+  .results-grade { display: inline-block; padding: 0.35rem 1rem; border-radius: 999px; font-size: 0.85rem; font-weight: 600; margin-bottom: 1.8rem; background: rgba(201,168,76,0.12); color: var(--gold); border: 1px solid rgba(201,168,76,0.3); }
+  .results-breakdown { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 1.3rem; max-width: 380px; width: 100%; margin-bottom: 1.8rem; }
+  .rb-row { display: flex; justify-content: space-between; padding: 0.45rem 0; font-size: 0.88rem; border-bottom: 1px solid var(--border); }
+  .rb-row:last-child { border-bottom: none; }
+  .rb-row .rb-val { color: var(--gold-light); font-weight: 600; }
+  .play-again-btn { background: linear-gradient(135deg, var(--gold), var(--gold-light)); border: none; border-radius: 11px; padding: 0.9rem 2.2rem; color: #1a1000; font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: all 0.2s; margin-right: 0.8rem; }
+  .play-again-btn:hover { opacity: 0.9; transform: translateY(-2px); }
+  .home-btn-sm { background: none; border: 1px solid var(--border); border-radius: 11px; padding: 0.9rem 1.8rem; color: var(--muted); font-family: 'DM Sans', sans-serif; font-size: 0.95rem; cursor: pointer; transition: all 0.2s; }
+  .home-btn-sm:hover { color: var(--text); border-color: var(--muted); }
+
+  .streak-indicator { position: fixed; top: 1rem; right: 1rem; background: var(--card); border: 1px solid var(--gold); border-radius: 999px; padding: 0.35rem 0.9rem; font-size: 0.82rem; font-weight: 600; color: var(--gold); z-index: 100; display: none; animation: pulse 0.8s ease; }
+  @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.1)} }
+
+  /* scrollable screens */
+  #brandstudy, #quiz, #pricegame, #flashcard { overflow-y: auto; }
+  #home { overflow-y: auto; }
+
+  /* filter pills */
+  .filter-pills { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem; width: 100%; max-width: 900px; }
+  .pill { background: var(--card); border: 1px solid var(--border); border-radius: 999px; padding: 0.3rem 0.8rem; font-size: 0.72rem; color: var(--muted); cursor: pointer; transition: all 0.2s; }
+  .pill.active { background: rgba(201,168,76,0.12); border-color: var(--gold); color: var(--gold); }
+  .pill:hover { border-color: var(--muted); color: var(--text); }
+</style>
+</head>
+<body>
+
+<div class="streak-indicator" id="streakBadge">🔥 <span id="streakCount">0</span> streak!</div>
+
+<!-- ============================================================ HOME ============================================================ -->
+<div class="screen active" id="home">
+  <div class="home-header">
+    <span class="logo-icon">🌸</span>
+    <h1>Fragrance Flash</h1>
+    <p>Staff Training · Show Prep · 2026</p>
+  </div>
+
+  <div class="section-label">📚 Study by Brand</div>
+  <div class="brand-grid">
+    <div class="brand-card" onclick="openStudy('tous')">
+      <div class="b-icon">🐻</div>
+      <div class="b-name">TOUS</div>
+      <div class="b-count">Women · Men · Kids · Baby</div>
+    </div>
+    <div class="brand-card" onclick="openStudy('halloween')">
+      <div class="b-icon">🎃</div>
+      <div class="b-name">Jesus del Pozo</div>
+      <div class="b-count">Halloween Collection</div>
+    </div>
+    <div class="brand-card" onclick="openStudy('perry')">
+      <div class="b-icon">🦅</div>
+      <div class="b-name">Perry Ellis</div>
+      <div class="b-count">360 · PE Lines · P18</div>
+    </div>
+    <div class="brand-card" onclick="openStudy('mahaya')">
+      <div class="b-icon">🕌</div>
+      <div class="b-name">Mahaya / HOP</div>
+      <div class="b-count">Arabic Oriental · Oud · Luxury</div>
+    </div>
+    <div class="brand-card" onclick="openStudy('ashwood')">
+      <div class="b-icon">🏛️</div>
+      <div class="b-name">John Ashwood</div>
+      <div class="b-count">Tuscan · Luxury · Gift Sets</div>
+    </div>
+    <div class="brand-card" onclick="openStudy('louis')">
+      <div class="b-icon">💎</div>
+      <div class="b-name">Louis Olivier</div>
+      <div class="b-count">X Bond · Women's · Mists</div>
+    </div>
+    <div class="brand-card" onclick="openStudy('penguin')">
+      <div class="b-icon">🐧</div>
+      <div class="b-name">Original Penguin</div>
+      <div class="b-count">Men's Lifestyle Fragrance</div>
+    </div>
+  </div>
+
+  <div class="section-label">🎮 Play & Practice</div>
+  <div class="mode-grid">
+    <div class="mode-card" onclick="startQuiz('all')">
+      <div class="mode-icon">🧠</div>
+      <h3>Full Brand Trivia</h3>
+      <p>All brands — history, notes, pricing, and inspiration. 20 questions.</p>
+      <span class="mode-badge">20 Questions</span>
+    </div>
+    <div class="mode-card" onclick="showBrandQuizPicker()">
+      <div class="mode-icon">🎯</div>
+      <h3>Brand Spotlight</h3>
+      <p>Focus on one brand at a time. Great for deep-dive prep.</p>
+      <span class="mode-badge">Pick a Brand</span>
+    </div>
+    <div class="mode-card" onclick="startFlashcards('all')">
+      <div class="mode-icon">🃏</div>
+      <h3>Flashcards</h3>
+      <p>Flip through products with notes, MSRP & inspiration comparisons.</p>
+      <span class="mode-badge">Self-Paced</span>
+    </div>
+    <div class="mode-card" onclick="startPriceGame()">
+      <div class="mode-icon">💰</div>
+      <h3>Price Challenge</h3>
+      <p>Guess the MSRP — earn points for accuracy. Never blank on price again.</p>
+      <span class="mode-badge">Beat the Clock</span>
+    </div>
+  </div>
+
+  <!-- Brand quiz picker (hidden by default) -->
+  <div id="brandQuizPicker" style="display:none;width:100%;max-width:900px;margin-top:1rem;">
+    <div class="section-label">Choose a brand to focus on:</div>
+    <div class="brand-grid">
+      <div class="brand-card" onclick="startQuiz('tous')"><div class="b-icon">🐻</div><div class="b-name">TOUS</div></div>
+      <div class="brand-card" onclick="startQuiz('halloween')"><div class="b-icon">🎃</div><div class="b-name">Halloween / JDP</div></div>
+      <div class="brand-card" onclick="startQuiz('perry')"><div class="b-icon">🦅</div><div class="b-name">Perry Ellis</div></div>
+      <div class="brand-card" onclick="startQuiz('mahaya')"><div class="b-icon">🕌</div><div class="b-name">Mahaya / HOP</div></div>
+      <div class="brand-card" onclick="startQuiz('ashwood')"><div class="b-icon">🏛️</div><div class="b-name">John Ashwood</div></div>
+      <div class="brand-card" onclick="startQuiz('louis')"><div class="b-icon">💎</div><div class="b-name">Louis Olivier</div></div>
+      <div class="brand-card" onclick="startQuiz('penguin')"><div class="b-icon">🐧</div><div class="b-name">Orig. Penguin</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ BRAND STUDY ============================================================ -->
+<div class="screen" id="brandstudy">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.2rem;">
+    <button class="back-btn" onclick="goHome()">← Home</button>
+    <button class="next-btn" style="display:inline-block;width:auto;padding:0.5rem 1.2rem;font-size:0.82rem;" id="studyQuizBtn" onclick="startQuizFromStudy()">Quiz This Brand →</button>
+  </div>
+  <div class="study-nav" id="studyNav"></div>
+  <div class="study-content" id="studyContent"></div>
+</div>
+
+<!-- ============================================================ QUIZ ============================================================ -->
+<div class="screen" id="quiz">
+  <div class="quiz-header">
+    <button class="back-btn" onclick="goHome()">← Home</button>
+    <div class="score-display">
+      <div class="score-item"><div class="val" id="qScore">0</div><div class="lbl">Score</div></div>
+      <div class="score-item"><div class="val" id="qNum">1</div><div class="lbl">of <span id="qTotal">20</span></div></div>
+    </div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="qProgress" style="width:0%"></div></div>
+  <div class="category-tag" id="qCategory">CATEGORY</div>
+  <div class="question-card"><div class="question-text" id="qText">Question</div></div>
+  <div class="options-grid" id="optionsGrid"></div>
+  <div class="feedback-box" id="feedbackBox">
+    <div class="fb-title" id="fbTitle">Correct!</div>
+    <div class="fb-text" id="fbText"></div>
+  </div>
+  <button class="next-btn" id="nextBtn" onclick="nextQuestion()">Next Question →</button>
+</div>
+
+<!-- ============================================================ FLASHCARD ============================================================ -->
+<div class="screen" id="flashcard">
+  <div class="fc-header">
+    <button class="back-btn" onclick="goHome()">← Home</button>
+    <div class="fc-counter"><span id="fcNum">1</span> / <span id="fcTotal">30</span></div>
+    <div style="font-size:0.78rem;color:var(--muted)">✓ <span id="fcKnew" style="color:var(--green)">0</span> &nbsp;✗ <span id="fcMissed" style="color:#f09090">0</span></div>
+  </div>
+  <div class="flashcard-wrap" onclick="flipCard()">
+    <div class="flashcard-inner" id="fcInner">
+      <div class="fc-face fc-front">
+        <div class="fc-label">Product Name</div>
+        <div class="fc-content" id="fcFront">Loading...</div>
+        <div class="fc-tap-hint">👆 Tap to reveal details</div>
+      </div>
+      <div class="fc-face fc-back">
+        <div class="fc-label" id="fcBrand">BRAND</div>
+        <div class="fc-content" id="fcBack">Details</div>
+        <div class="fc-sub" id="fcBackSub"></div>
+        <div class="fc-inspo" id="fcInspo"></div>
+      </div>
+    </div>
+  </div>
+  <div class="fc-actions">
+    <button class="fc-btn missed" onclick="fcAnswer(false)">✗ Missed it</button>
+    <button class="fc-btn knew" onclick="fcAnswer(true)">✓ Got it!</button>
+  </div>
+</div>
+
+<!-- ============================================================ PRICE GAME ============================================================ -->
+<div class="screen" id="pricegame">
+  <div class="quiz-header">
+    <button class="back-btn" onclick="goHome()">← Home</button>
+    <div class="score-display">
+      <div class="score-item"><div class="val" id="pgScore">0</div><div class="lbl">Points</div></div>
+      <div class="score-item"><div class="val" id="pgNum">1</div><div class="lbl">of <span id="pgTotal">15</span></div></div>
+    </div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="pgProgress" style="width:0%"></div></div>
+  <div class="price-product">
+    <div class="price-brand-tag" id="pgBrand">BRAND</div>
+    <div class="price-name" id="pgName">Product Name</div>
+    <div class="price-notes" id="pgNotes">Notes...</div>
+    <div class="price-inspo" id="pgInspo"></div>
+    <div class="price-input-wrap">
+      <span class="price-dollar">$</span>
+      <input type="number" class="price-input" id="pgInput" placeholder="0" step="1" min="0" max="500">
+      <button class="price-submit" onclick="submitPrice()">Check</button>
+    </div>
+    <div class="price-result" id="pgResult"></div>
+  </div>
+  <button class="next-btn" id="pgNextBtn" onclick="nextPrice()" style="display:none">Next Product →</button>
+</div>
+
+<!-- ============================================================ RESULTS ============================================================ -->
+<div class="screen" id="results">
+  <div class="results-trophy" id="resTrophy">🏆</div>
+  <div class="results-title">Round Complete!</div>
+  <div class="results-sub" id="resSub">Here's how you did</div>
+  <div class="results-score" id="resFinalScore">0</div>
+  <div class="results-grade" id="resGrade">Expert Nose</div>
+  <div class="results-breakdown" id="resBreakdown"></div>
+  <div>
+    <button class="play-again-btn" onclick="playAgain()">Play Again</button>
+    <button class="home-btn-sm" onclick="goHome()">Home</button>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// BRAND DATA
+// ============================================================
+const BRANDS = {
+  tous: {
+    name: "TOUS",
+    icon: "🐻",
+    tagline: "Spanish luxury jewelry & fragrance since 1920",
+    history: `TOUS was founded in 1920 in Manresa, Spain by Salvador Tous and his wife Rosa Oriol as a small watch repair shop. It was Rosa's creativity that transformed the brand — she began designing jewelry, and in 1985 the iconic teddy bear logo was born, becoming one of the most recognized symbols in Spanish luxury fashion.
+
+The fragrance line launched in the 1990s as a natural extension of the TOUS lifestyle brand — accessible luxury with a romantic, Mediterranean spirit. Today TOUS fragrances are sold in over 55 countries. The brand's philosophy is that luxury should feel joyful, not intimidating — making it a perfect sell for all demographics.`,
+    selling: [
+      { icon: "🐻", text: "<strong>The Bear Logo Story</strong> — Customers already recognize the teddy bear. Use the 1985 origin story to create emotional connection. 'This iconic bear has been a symbol of love and playfulness for 40 years.'" },
+      { icon: "🌍", text: "<strong>Spanish Heritage</strong> — TOUS is a genuine Spanish luxury house, not a licensed brand. This authenticity matters to fragrance buyers looking for real provenance." },
+      { icon: "👶", text: "<strong>Full Family Range</strong> — Uniquely, TOUS offers fragrances for babies, kids, women and men. One brand can serve an entire family's gifting needs." },
+      { icon: "💛", text: "<strong>Accessible Luxury Pricing</strong> — $45–$65 MSRP positions TOUS above mass market but far below prestige. Easy YES for gift buyers." },
+      { icon: "🎁", text: "<strong>Gift-Ready</strong> — TOUS packaging is distinctive and gift-ready. Testers are available for most SKUs so customers can try before buying." }
+    ],
+    priceRange: "$45 – $95",
+    tiers: "4 pricing tiers (ENTRY → D)",
+    keyProducts: [
+      { name: "TOUS 3.0 EDP (W)", notes: "Brazilian rosewood, red currant, white musk, gardenia", msrp: "$60", inspo: "Sophisticated floral oriental for women", gender: "female" },
+      { name: "TOUS 3.0 EDT (W)", notes: "Violet leaf, bergamot, cassia, peony, jasmine, rose, white musk, cedar, iris", msrp: "$55", inspo: "Fresh floral chypre", gender: "female" },
+      { name: "TOUS 3.4 EDT (M)", notes: "Bergamot, cassia, coriander, jasmine, rose, white musk, cedar, iris", msrp: "$60", inspo: "Sophisticated masculine floral", gender: "male" },
+      { name: "TOUS MAN SPORT 3.4 EDT", notes: "Amalfi lemon, ginger, red apple, Virginia cedar, cashmere wood, oak moss", msrp: "$95", inspo: "Fresh sporty citrus fougère — premium tier", gender: "male" },
+      { name: "TOUS TOUCH THE ORIGINAL GOLD 3.4 EDT", notes: "Lily-of-the-valley, lotus, freesia, jasmine, tiare, blueberry, raspberry, almond, vanilla", msrp: "$65", inspo: "Luxurious floral gourmand — highest women's price", gender: "female" },
+      { name: "TOUS BABY 3.4 EDC", notes: "Mandarin orange, neroli, bergamot, orange blossom, apple, pear, rose, musk, cedar", msrp: "$45", inspo: "Gentle citrus floral for babies & children", gender: "unisex" },
+      { name: "TOUS BABY (Alcohol Free)", notes: "Mandarin orange, neroli, bergamot, pear, apple, musk", msrp: "$45", inspo: "Safe for very young children — zero alcohol formula", gender: "unisex" },
+      { name: "TOUS KIDS GIRL 3.4 EDT", notes: "Lemon, cupcake, mandarin orange", msrp: "$45", inspo: "Playful sweet citrus for girls", gender: "female" },
+      { name: "TOUS KIDS BOY 3.4 EDT", notes: "Neroli, clover, mandarin orange, grass, candy apple, licorice, musk", msrp: "$45", inspo: "Fresh, sporty and fun for boys", gender: "male" },
+      { name: "TOUS BABY PINK FRIENDS 3.4 EDC", notes: "Bergamot, sweet orange blossom, juicy raspberry", msrp: "$45", inspo: "Bright and cheerful for babies/toddlers", gender: "unisex" },
+    ]
+  },
+
+  halloween: {
+    name: "Jesus del Pozo / Halloween",
+    icon: "🎃",
+    tagline: "Spanish avant-garde fashion meets iconic fragrance since 1974",
+    history: `Jesus del Pozo was a Madrid-born fashion designer who opened his first boutique in 1974, quickly becoming one of Spain's most celebrated couturiers alongside Balenciaga and Pertegaz. Known for his bold, theatrical aesthetic, del Pozo brought the same artistic vision to fragrance.
+
+The Halloween fragrance line, launched in 1997, became a cult classic. Its bold, unexpected name — Halloween — was intentionally provocative at the time of launch and created instant memorability. The original Halloween EDT's powdery violet and aquatic profile was unlike anything on the market, and it built a loyal following that still drives sales today.
+
+After Jesus del Pozo's passing in 2011, the fragrance brand was acquired and expanded. The Halloween line now spans multiple collections for women, men, and the beloved "Man" sub-line. The brand is distributed globally and is particularly strong in Spain, Latin America, and the US Hispanic market.`,
+    selling: [
+      { icon: "🎭", text: "<strong>Unique Name = Instant Recall</strong> — 'Halloween' is unforgettable. Customers remember it. This is free marketing every October." },
+      { icon: "🌊", text: "<strong>Iconic Original</strong> — The original Halloween EDT (1997) has over 25 years of brand equity. Introduce it as a 'classic with cult status.'" },
+      { icon: "📅", text: "<strong>Seasonal Selling Opportunity</strong> — Halloween marketing becomes effortless every fall. Cross-promote with seasonal displays." },
+      { icon: "🍸", text: "<strong>The Martini Note</strong> — Halloween Man is famous for having 'Martini' as a top note — completely unique in the market. A guaranteed conversation starter at any booth." },
+      { icon: "💰", text: "<strong>Strong Value</strong> — Men's fragrances at 4.2oz for ~$25 wholesale. Excellent margin story — well-known brand, competitive price." }
+    ],
+    priceRange: "$10.55 – $25.70 wholesale / varies MSRP",
+    tiers: "5 pricing tiers (ENTRY → D), testers available",
+    keyProducts: [
+      { name: "Halloween EDT Original (W)", notes: "Powdery violet, aquatic sea notes, green banana leaf, petitgrain", msrp: "~$60 MSRP", inspo: "Iconic since 1997 — unique powdery aquatic", gender: "female" },
+      { name: "Halloween Blossom 3.4 EDT", notes: "Wild strawberry, pink pepper, green mandarin, blackberry blossom, Egyptian jasmine, musk, vanilla, cedar", msrp: "", inspo: "Fresh fruity floral — younger customer", gender: "female" },
+      { name: "Halloween Blue Drop 3.4 EDT", notes: "Green apple, lavender, white flowers, musk", msrp: "", inspo: "Clean aquatic floral", gender: "female" },
+      { name: "Halloween Magic 3.4 EDT", notes: "Pear ice cream, raspberry, yellow mandarin", msrp: "", inspo: "Fun gourmand fruity — great for younger buyers", gender: "female" },
+      { name: "Halloween Man 4.2 EDT", notes: "MARTINI, violet leaf, mandarin, basil, cinnamon, lavender, ginger, orange blossom, vanilla, leather, amber, musk", msrp: "", inspo: "Unique masculine — martini top note is legendary", gender: "male" },
+      { name: "Halloween Man Hero 4.2 EDT", notes: "Lemon, grapefruit, ginger, sea notes, lavender, sage, water lily, amber, patchouli, cashmeran, moss", msrp: "", inspo: "Fresh marine fougère — very wearable", gender: "male" },
+      { name: "Halloween Man X 4.2 EDT", notes: "Cardamom, cinnamon, mineral accords", msrp: "", inspo: "Warm spicy oriental with edge", gender: "male" },
+      { name: "Halloween Man Mystery 4.2 EDP", notes: "Fruity, musky, fresh, woody, nutty", msrp: "", inspo: "EDP concentration — longer lasting", gender: "male" },
+      { name: "Halloween Man Rock On 4.2 EDT", notes: "Lemon, pink pepper, cardamom, bamboo, red apple, lavender, rosemary, violet leaf, musk, moss, sandalwood, amber", msrp: "", inspo: "Most affordable Halloween Men's — great entry point", gender: "male" },
+    ]
+  },
+
+  perry: {
+    name: "Perry Ellis",
+    icon: "🦅",
+    tagline: "American fashion & fragrance — democratic luxury since 1978",
+    history: `Perry Ellis (1940–1986) was one of America's most celebrated fashion designers, known for his relaxed, sporty aesthetic that redefined American sportswear in the late 1970s and early 1980s. He was known for using natural fibers and creating clothes that felt both luxurious and approachable — a philosophy that carries directly into the fragrance line.
+
+After his passing, the Perry Ellis brand continued under licensing and has grown into a major global fragrance house. The 360 collection — one of the brand's most iconic fragrance lines — launched in 1994 and has been continuously updated with new flankers and flanker flankers. The brand is especially beloved in the US, Latin America, and Middle East markets.
+
+Perry Ellis fragrances are known for their excellent quality-to-price ratio — offering clean, sophisticated American-style scents at accessible price points. The 360 line alone has generated hundreds of millions in sales globally.`,
+    selling: [
+      { icon: "🇺🇸", text: "<strong>Classic American Brand</strong> — Perry Ellis is a household name customers already trust. Selling with existing brand recognition is much easier than introducing an unknown." },
+      { icon: "🔵", text: "<strong>360 Very Blue is a Bestseller</strong> — Bergamot + frozen white pear + spearmint. Clean, aquatic, universally appealing. 'If they like Abercrombie Fierce, they'll love this.'" },
+      { icon: "💙", text: "<strong>The Blue Family</strong> — 360 Very Blue, PE Aqua, PE Pure Blue, 360 Collection Men — the 'blue' theme creates easy cross-selling. 'If you love one, try them all.'" },
+      { icon: "🎁", text: "<strong>Strong Gift Set Story</strong> — 4PC gift sets across multiple lines make excellent holiday and Father's Day recommendations at strong margins." },
+      { icon: "📊", text: "<strong>Wide Range = Wide Market</strong> — From $26 body mists to $65 EDTs, Perry Ellis covers every budget level. Never lose a sale due to price." }
+    ],
+    priceRange: "$2.00 (vials) – $65+ MSRP",
+    tiers: "Multiple tiers, gift sets available",
+    keyProducts: [
+      { name: "360 Very Blue Men 3.4 EDT", notes: "Italian bergamot, frozen white pear, touch of spearmint", msrp: "", inspo: "Clean aquatic citrus — 'budget Acqua di Gio'", gender: "male" },
+      { name: "PE Aqua For Men 3.4 EDT", notes: "Lime, bergamot, sea water, lavender, coriander, woodsy, musk, ambergris", msrp: "", inspo: "Marine aromatic fougère", gender: "male" },
+      { name: "Perry Ellis Sky 3.4 EDT", notes: "Bergamot, fresh lime, lavender, mint, aquatic accord, cedarwood, sandalwood, patchouli, amber", msrp: "", inspo: "Fresh cool sporty — sky and ocean inspired", gender: "male" },
+      { name: "PE Red Sky 3.4 EDT", notes: "Bergamot, juniper, cardamom, lavender, rosemary, nutmeg, cedarwood, vetiver", msrp: "", inspo: "Warm aromatic woody fougère", gender: "male" },
+      { name: "PE Night Sky 3.4 EDT", notes: "Lime, bergamot, watery notes, violet leaves, amber, cedarwood, patchouli", msrp: "", inspo: "Dark, moody aquatic-woody", gender: "male" },
+      { name: "PE Midnight 3.4 EDT", notes: "Amber, mandarin, cinnamon, orange blossom, rosemary, geranium, amber, vanilla, tonka bean", msrp: "", inspo: "Warm spicy oriental — inspired by 1 Million", gender: "male" },
+      { name: "PE Bold Red 3.4 EDT", notes: "Red apple, finger lime, green leaves, ginger flower, black pepper, musk, mahogany, tonka bean", msrp: "", inspo: "Bold fruity woody — finger lime is a unique selling point", gender: "male" },
+      { name: "PE Pure Blue 3.4 EDT", notes: "Apple, bergamot, grapefruit, green notes, watery notes, cardamom, sandalwood, musk, amber, moss", msrp: "", inspo: "Clean blue aquatic-woody", gender: "male" },
+      { name: "360 Coral For Women 3.4", notes: "Italian bergamot, sparkling peach prosecco, Asian apple-pear, pink pepper, fruity florals, musky base", msrp: "", inspo: "'A brunch in a bottle' — vibrant feminine fruity floral", gender: "female" },
+      { name: "360W 3.4 EDT Spray", notes: "Melon, tangerine, osmanthus, Amazon lily, blue rose", msrp: "", inspo: "Fresh floral fruity — tropical-inspired", gender: "female" },
+      { name: "360 Magnetic Pink", notes: "Bergamot, peach, champagne, rose heart, magnolia", msrp: "", inspo: "Effervescent floral — champagne note is a great selling point", gender: "female" },
+      { name: "P18 Orchid 3.4 EDP", notes: "Pink orchid, nymphea (water lily), sandalwood, vanilla", msrp: "", inspo: "Luxurious pink orchid floral oriental", gender: "female" },
+    ]
+  },
+
+  mahaya: {
+    name: "Mahaya / House of Perfumes",
+    icon: "🕌",
+    tagline: "Premium Middle Eastern fragrance artistry — inspired by the world's finest",
+    history: `House of Perfumes (HOP) is a UAE-based fragrance house operating under the Mahaya brand umbrella. Founded to bring the rich tradition of Arabic perfumery to the global market, Mahaya bridges the gap between authentic Middle Eastern oud culture and modern Western fragrance preferences.
+
+Arabic perfumery has over 3,000 years of history — oud (agarwood) is one of the most expensive raw materials in the world, often called 'liquid gold.' It is extracted from the resin of infected Aquilaria trees and can cost thousands of dollars per kilogram. Mahaya makes this tradition accessible while maintaining genuine quality.
+
+What makes Mahaya unique is its transparent inspiration model — each fragrance is openly compared to a high-end reference scent (like Chanel, Tom Ford, Creed, YSL, Armani). This lets customers understand what they're getting while discovering a more affordable alternative. The inspirations include some of the world's most coveted perfumes.
+
+The Qasida line ($90 MSRP) is the premium collection, positioned to compete directly with niche perfumery. The Mashair collection ($90 MSRP) and Nashwa/Nashwaan ($85 MSRP) sit in the luxury tier. The Saif line ($34 MSRP) and Oud collection ($34 MSRP) represent the accessible entry into Arabic fragrance culture.`,
+    selling: [
+      { icon: "💎", text: "<strong>The 'Inspired By' Story</strong> — Every Mahaya product has a high-end inspiration. 'This is inspired by Tom Ford, Creed, or YSL but at a fraction of the price.' This sells itself — customers feel smart." },
+      { icon: "🪵", text: "<strong>Oud Education</strong> — Most customers don't know what oud is. Brief explanation: 'Oud is agarwood resin — often called liquid gold. It's one of the most expensive fragrance ingredients in the world. Mahaya brings that luxury to everyday pricing.'" },
+      { icon: "🕯️", text: "<strong>Long-Lasting EDPs</strong> — Arabic-style EDPs are known for their strength and longevity. 'These are extrait-level concentration in some cases — one spray lasts all day.'" },
+      { icon: "🌍", text: "<strong>Growing Middle Eastern Consumer Base</strong> — Oud and Arabic fragrance is the fastest growing segment in perfumery globally. Being an expert in this category gives you a competitive advantage." },
+      { icon: "📈", text: "<strong>Price Tier Strategy</strong> — From $34 Saif line all the way to $90 Qasida/Mashair — there's a Mahaya for every budget. Never lose a customer who wants Arabic fragrance." },
+      { icon: "🎁", text: "<strong>Unisex Appeal</strong> — Most Mahaya fragrances are unisex (U), which is the fastest growing fragrance category globally. 'This is designed for anyone — it's a modern, genderless approach to luxury.'" }
+    ],
+    priceRange: "$34 – $90 MSRP",
+    tiers: "Wholesale: $10.71 – $28.35",
+    keyProducts: [
+      { name: "Qasida Gold EDP", notes: "Grapefruit, lemon, apple, white wood, patchouli, sandalwood, musks, ambroxan, vanilla", msrp: "$90", inspo: "Inspired by: Thomas Kosmala No.10", gender: "unisex" },
+      { name: "Qasida Silver EDP", notes: "Lemon, coconut, apple, red berries, white wood, jasmine, violet, ambroxan, vanilla, powdery musks", msrp: "$90", inspo: "Inspired by: One & Only by GISSAH", gender: "unisex" },
+      { name: "Qasida Bronze EDP", notes: "Lemon, warm spices, chocolate, vetiver, sandalwood, leather, amber, vanilla", msrp: "$90", inspo: "Inspired by: Tom Ford Myrrhe", gender: "unisex" },
+      { name: "Mashair Original EDP", notes: "Bergamot, grapefruit, lemon, pineapple, apple, patchouli, sandalwood, lavender, vetiver, leather, amber", msrp: "$90", inspo: "Inspired by: In Leather by Aigner", gender: "unisex" },
+      { name: "Mashair Oud EDP", notes: "Bergamot, passion fruit, geranium, white wood, patchouli, benzoin, saffron, leather, vanilla, amber", msrp: "$90", inspo: "Inspired by: Maison Crivelli Oud Maracuja Extrait", gender: "unisex" },
+      { name: "Mashair Classic EDP", notes: "Bergamot, cardamom, lavender, patchouli, white wood, geranium, vetiver, musks, vanilla", msrp: "$90", inspo: "Inspired by: Paco Rabanne Phantom Silver", gender: "unisex" },
+      { name: "Nashwa EDP (W)", notes: "Coconut, tuberose, orange blossom, sandalwood", msrp: "$85", inspo: "Inspired by: Midnight Sex by Paco Rabanne", gender: "female" },
+      { name: "Nashwaan EDP (M)", notes: "Lavender, bergamot, lemon, honey, cinnamon, cashmeran, jasmine sambac, tobacco leaf, vanilla, tonka bean", msrp: "$85", inspo: "Inspired by: Naxos by Xerjoff (niche!)", gender: "male" },
+      { name: "Badiya EDP (W)", notes: "Red fruits, raspberry, rose, violet, peach, rose geranium, iris, white musk, cedar", msrp: "$45", inspo: "Inspired by: Chanel Chance Eau Splendide", gender: "female" },
+      { name: "Fatin EDP (W)", notes: "Strawberry, raspberry, geranium, peach, bergamot, caramel, jasmine, passionfruit, patchouli, musk, amber", msrp: "$45", inspo: "Inspired by: Armaf Odyssey Candee", gender: "female" },
+      { name: "Zayn EDP (M)", notes: "Pineapple, iris, ginger, cypress, coconut, woodsy, tonka bean, sandalwood, amber, ambergris", msrp: "$45", inspo: "Inspired by: Le Beau de Parfum Jean Paul Gaultier", gender: "male" },
+      { name: "Aziz EDP (M)", notes: "Bergamot, lemon, grapefruit, pink pepper, praline, saffron, cedarwood, patchouli, tonka", msrp: "$45", inspo: "Inspired by: Gissah Mavro", gender: "male" },
+      { name: "Niyamat Blu EDP (M)", notes: "Red currant, mandarin orange, pomegranate, damask rose, leather, patchouli, benzoin, amber", msrp: "$50", inspo: "Inspired by: Games J'Adoube", gender: "male" },
+      { name: "Niyamat Rouge EDP (U)", notes: "Lavender, incense, clary sage, orris, bourbon vanilla, ambrette, ink, amberwood", msrp: "$50", inspo: "Inspired by: YSL Muse", gender: "unisex" },
+      { name: "Laya Gold EDP (W)", notes: "Hazelnut, cocoa, jasmine sambac, cedar, ambroxan, caramel, musk", msrp: "$50", inspo: "Inspired by: Blanc Luxe", gender: "female" },
+      { name: "Laya Fresh EDP (W)", notes: "Rose water, pear, hazelnut, bitter almond, frankincense, pink pepper, rose, osmanthus, saffron, sandalwood, vanilla", msrp: "$50", inspo: "Inspired by: Guidance 46 — complex luxury floral oriental", gender: "female" },
+      { name: "Laya Night EDP (U)", notes: "Rose, bergamot, cardamom, longoza, patchouli, vanilla, blonde woods, sandalwood", msrp: "$50", inspo: "Inspired by: Mind Games Prodigy", gender: "unisex" },
+      { name: "Kubra Gold EDP (W)", notes: "Lotus, Amalfi lemon, cassis, rose, jasmine, iris, freesia, ylang-ylang, mimosa, sandalwood, vanilla, musk, amber, Brazilian rosewood", msrp: "$50", inspo: "Inspired by: 1 Million Gold Her by Paco Rabanne", gender: "female" },
+      { name: "Khulud Noir EDP (U)", notes: "Black pepper, cardamom, ginger, cognac, bergamot, dark chocolate, bourbon vanilla, cinnamon, oak, amber, leather, oud, sandalwood, praline", msrp: "$50", inspo: "Inspired by: Twist of Angels Share & No Limits P. Plein", gender: "unisex" },
+      { name: "Saif Brave EDP (M)", notes: "Cardamom, cedarwood, whitewood, vanillawood, patchouli, ambergris, musk", msrp: "$34", inspo: "Inspired by: Gissah Martinique Osmanthus", gender: "male" },
+      { name: "Saif Gentle EDP (M)", notes: "Lavender, cardamom, grapefruit, dry wood, thyme, cedarwood, guaiac wood, tonka beans", msrp: "$34", inspo: "Inspired by: Penhaligon's Tragedy of Lord George (niche!)", gender: "male" },
+      { name: "Saif Style EDP (M)", notes: "Lemon, cinnamon, lemongrass, apple, bergamot, aquatic notes, lavender, rosemary, cardamom, amber, musk, tobacco, sandalwood", msrp: "$34", inspo: "Inspired by: Najdia by Lattafa", gender: "male" },
+      { name: "Oud Vanilla EDP (W)", notes: "Cypriol, black pepper, saffron, cedarwood, amber, caramel, vanilla, sandalwood", msrp: "$34", inspo: "Inspired by: Aoud Vanille by Mancera", gender: "female" },
+      { name: "Oud Saffron EDP (W)", notes: "Saffron, ylang ylang, black pepper, gaiacwood, rose, jasmine, amber, patchouli, sandalwood, musk", msrp: "$34", inspo: "Gateway oud — saffron + floral base makes it accessible", gender: "female" },
+      { name: "Precious Oud EDP (U)", notes: "Oud, pink pepper, saffron, nutmeg, cedarwood, violet, incense, cistus, amber, sandalwood, patchouli", msrp: "$50", inspo: "Inspired by: Cherry Oud by Guerlain", gender: "unisex" },
+      { name: "Royal Oud EDP (U)", notes: "Citrus, aromatic spices, woody notes, floral, woody, amber, musk", msrp: "$50", inspo: "Inspired by: Magic by Al Jazeera", gender: "unisex" },
+      { name: "Emarati Oud EDP (U)", notes: "Rum, elemi, bergamot, lavender, davana, Madagascar vanilla, chestnut, cedar, patchouli", msrp: "$50", inspo: "Inspired by: Stronger With You Absolutely by Giorgio Armani", gender: "unisex" },
+      { name: "Glorious Oud Ambari EDP (U)", notes: "Grandiflorum jasmine, saffron, cedar wood, bitter almond, ambergris, musky woody", msrp: "$40", inspo: "Inspired by: Lattafa Maahir", gender: "unisex" },
+    ]
+  },
+
+  ashwood: {
+    name: "John Ashwood",
+    icon: "🏛️",
+    tagline: "Tuscan-inspired luxury fragrance collections — Europe meets the Orient",
+    history: `John Ashwood is a premium fragrance brand that brings together the artisanal heritage of Italian perfumery with Middle Eastern luxury fragrance culture. The brand's most recognized line is the Tuscan Collection — a series of EDP fragrances inspired by the romantic landscapes and cultural richness of Tuscany, Italy.
+
+Each Tuscan Collection fragrance has a poetic name tied to Italian geography or culture: Tuscan Rose, Venetian Red, Via Veneto, Aqua di Milano, Aqua di Roma, Bosphore (evoking the Mediterranean). This storytelling element is a powerful selling tool — customers buy the fantasy of Italy along with the fragrance.
+
+Beyond the Tuscan line, John Ashwood has expanded into premium large-format EDPs (200ml Favourite, Legacy, Heritage, Ombre Oud — all $100 MSRP), a growing collection of gender-specific 120ml fragrances, and comprehensive 5-piece gift sets. The inspirations range from YSL and Tom Ford to Louis Vuitton and Creed.
+
+The Original 120ml EDP is openly inspired by Creed Aventus — one of the most desired men's fragrances in the world — at a fraction of the price. This is a signature sell: 'Inspired by the world's most popular luxury men's fragrance, Creed Aventus.`,
+    selling: [
+      { icon: "🇮🇹", text: "<strong>Italian Storytelling</strong> — 'Aqua di Roma,' 'Via Veneto,' 'Tuscan Rose' — the names sell a dream. Use the Italian connection to create desire." },
+      { icon: "🏆", text: "<strong>Aventus Alternative</strong> — John Ashwood Original is inspired by Creed Aventus ($435+). That comparison closes sales instantly for customers who know the reference." },
+      { icon: "🎁", text: "<strong>Gift Set Power</strong> — 5PC sets (Red, White, Black, Brown) at $70 MSRP/$22 wholesale are exceptional gift buys. 5 x 20ml mini vials = great gift box." },
+      { icon: "💫", text: "<strong>High MSRP Perception</strong> — The Tuscan Collection lists $90 MSRP at $14.85 wholesale — one of the best margin stories in the catalog." },
+      { icon: "🌹", text: "<strong>Rose Theme Creates Repeat Buyers</strong> — Tuscan Rose, Sugar Rose, Dark Rose, Peony, Rouge Prive — a full rose journey. Perfect for collectors." }
+    ],
+    priceRange: "$34.99 – $100 MSRP",
+    tiers: "Wholesale: $14.85 – $31.50",
+    keyProducts: [
+      { name: "Original 120ml EDP (M)", notes: "Grapefruit, bergamot, pink pepper, black currant, pineapple, nutmeg, cloves, ginger, cinnamon, cardamom, rose, patchouli, vetiver, sandalwood, musk, tonka", msrp: "$49.99", inspo: "Inspired by: CREED AVENTUS 🏆 (one of world's most coveted men's fragrances)", gender: "male" },
+      { name: "Favourite 200ml EDP", notes: "Raspberry, caramel, incense, patchouli, whitewood, sandalwood, vetiver, vanilla, musks", msrp: "$100", inspo: "Inspired by: GISSAH LA LUNA", gender: "unisex" },
+      { name: "Heritage 200ml EDP", notes: "Red currant, mandarin orange, pomegranate, damask rose, leather, patchouli, benzoin, amber", msrp: "$100", inspo: "Inspired by: Mind Games J'Adoube", gender: "unisex" },
+      { name: "Legacy 200ml EDP", notes: "Orange, grapefruit, lemon, red berries, mint, basil, carrot, rose, musks, ambroxan", msrp: "$100", inspo: "Inspired by: LV Pacific Chill (Louis Vuitton!)", gender: "unisex" },
+      { name: "Ombre Oud 200ml EDP", notes: "Orange, bergamot, lemon, apple, peach, whitewood, cedarwood, jasmine sambac, anise, amber, iris, vanilla", msrp: "$100", inspo: "Inspired by: Haramain Amber Oud", gender: "unisex" },
+      { name: "Azure 100ml EDP (M)", notes: "Pear, bergamot, mandarin orange, ginger, orange blossom, georgywood, musk, Ambrofix, Akigalawood, cedar", msrp: "$80", inspo: "Inspired by: Blue Talisman by Ex Nihilo (niche!)", gender: "male" },
+      { name: "Emerald 100ml EDP (M)", notes: "Black pepper, orange blossom, bourbon vanilla, amber, woody notes, patchouli", msrp: "$80", inspo: "Inspired by: MYSLF by YSL", gender: "male" },
+      { name: "Divino 120ml EDP (F)", notes: "Pitahaya (dragon fruit), red peony, frangipani, vanilla, patchouli", msrp: "$65", inspo: "Inspired by: La Bomba — exotic tropical floral", gender: "female" },
+      { name: "Tuscan Rose EDP", notes: "Rose, pomegranate, violet, ylang-ylang, crystal amber, sandalwood, precious woods", msrp: "$90", inspo: "Inspired by: YSL Libre", gender: "unisex" },
+      { name: "Venetian Red EDP", notes: "Cherry, tangerine, cinnamon, saffron, cedar, nutmeg, patchouli, plum, leather, vanilla, moss, labdanum", msrp: "$90", inspo: "Inspired by: Tom Ford Cherry Smoke + Gucci Voice of Snake", gender: "unisex" },
+      { name: "Bosphore EDP", notes: "Saffron, mandarin, rose, benzoin, labdanum, amber, agarwood, patchouli, vanilla", msrp: "$90", inspo: "Inspired by: Noir de Noir by Tom Ford", gender: "unisex" },
+      { name: "Tiramisu EDP", notes: "Fig, orange, tangerine, peach, pineapple, hazelnut, musk, amber, wood", msrp: "$90", inspo: "Inspired by: Memo Paris — gourmand Italian dessert in a bottle", gender: "unisex" },
+      { name: "5PC Gift Set Red", notes: "Mix of 5 Tuscan Collection in 20ml minis — Red collection", msrp: "$70", inspo: "Inspirations: YSL Libre, Tom Ford, Gucci, Yara by Lattafa", gender: "unisex" },
+      { name: "5PC Gift Set White", notes: "Mix of 5 white collection Tuscan fragrances in 20ml minis", msrp: "$70", inspo: "Inspirations: Bvlgari, Byredo, Byredo Black Saffron", gender: "unisex" },
+    ]
+  },
+
+  louis: {
+    name: "Louis Olivier",
+    icon: "💎",
+    tagline: "Accessible luxury fragrance for men and women — value-driven sophistication",
+    history: `Louis Olivier is a fragrance brand built on a simple but powerful proposition: high-quality, inspired fragrances at prices that make sense for everyday consumers. The X Bond men's collection and the women's range both use the 'inspired by' model transparently — each scent is a tribute to a famous designer fragrance, making it easy for sales staff to introduce the product with confidence.
+
+The X Bond men's line covers the full spectrum of masculine fragrance styles — from cool aquatics (Aqua = Cool Water) to warm orientals (Gold = 1 Million PR) to woody classics (Blue = Hugo Boss). This makes it easy to match any customer's existing preferences to a Louis Olivier option.
+
+The women's line takes a different approach with evocative names like Dream, Crystal, Floral, Bouquet, and Candy — each inspired by a well-known women's fragrance (Carolina Herrera, YSL, Gucci Bloom, Miss Dior). The companion fragrance mist line (inspired by Victoria's Secret) creates gift set opportunities.
+
+Gift sets combining EDP + Fragrance Mist at $9 wholesale/$49.99 MSRP represent one of the best margin stories in the entire catalog.`,
+    selling: [
+      { icon: "💰", text: "<strong>Incredible Margin Story</strong> — X Bond EDPs at $6 wholesale/$34 MSRP. Women's EDPs at $7/$39.99. Gift sets at $9/$49.99. These numbers are hard to beat anywhere." },
+      { icon: "🔗", text: "<strong>The 'Inspired By' Bridge</strong> — Every product has a reference. X Bond Gold = '1 Million PR' vibe. Crystal = 'YSL Libre' vibe. Customers understand instantly." },
+      { icon: "🎁", text: "<strong>Gift Set Genius</strong> — EDP + 250ml Fragrance Mist bundle at $49.99 MSRP/$9 wholesale. The mist adds perceived value that makes the gift feel premium." },
+      { icon: "💧", text: "<strong>Body Spray Add-On</strong> — Every X Bond EDP has a matching 200ml deo body spray at $5.25 wholesale. Easy upsell: 'Match your scent with the body spray.'" },
+      { icon: "👩", text: "<strong>Women's Range = VS Alternative</strong> — The fragrance mists are openly inspired by Victoria's Secret bestsellers. Great for customers who love VS but want a better price point." }
+    ],
+    priceRange: "$26 – $50 MSRP",
+    tiers: "Wholesale: $4.50 – $9.00",
+    keyProducts: [
+      { name: "X Bond Gold EDP (M)", notes: "Grapefruit, tangerine, apple, bergamot, cedarwood, cinnamon, tonka beans, amber, vanilla, musk, plum", msrp: "$34", inspo: "Inspired by: 1 Million by Paco Rabanne 💛", gender: "male" },
+      { name: "X Bond Blue EDP (M)", notes: "Bergamot, apple, birch leaves, birch, lavender, cloves, sandalwood, moss, musk", msrp: "$34", inspo: "Inspired by: Hugo Boss Bottled Night", gender: "male" },
+      { name: "X Bond Aqua EDP (M)", notes: "Lime, orange, aldehydic, juniper, ebony, moss, amber", msrp: "$34", inspo: "Inspired by: Cool Water by Davidoff 🌊", gender: "male" },
+      { name: "X Bond Black EDP (M)", notes: "Cinnamon, pineapple, lemon, praline, apple, patchouli, cedarwood, musk, amber", msrp: "$34", inspo: "Inspired by: Black XS by Paco Rabanne", gender: "male" },
+      { name: "X Bond OUD EDP (M)", notes: "Lemon, pink pepper, apple, geranium, violet, saffron, incense, amber", msrp: "$34", inspo: "Inspired by: Oud Saffron by Hugo Boss", gender: "male" },
+      { name: "X Bond Silver EDP (M)", notes: "Bergamot, cardamom, nutmeg, lavandin, geranium, orange blossom, cashmere wood, vanilla", msrp: "$34", inspo: "Inspired by: Silver Scent by Jacques Bogart", gender: "male" },
+      { name: "X Bond Red EDP (M)", notes: "Tangerine, lime, pepper, patchouli, musk", msrp: "$34", inspo: "Inspired by: Dunhill Desire", gender: "male" },
+      { name: "X Bond ICE EDP (M)", notes: "Bergamot, aldehydes, caraway, lavender, geranium, coriander, white musk, vetiver, patchouli", msrp: "$34", inspo: "Inspired by: COLD — icy fresh aromatic", gender: "male" },
+      { name: "Dream EDP (W)", notes: "Almond, coffee, bergamot, lemon, tuberose, jasmine sambac, orange blossom, Bulgarian rose, tonka bean, cacao, vanilla, praline, sandalwood", msrp: "$39.99", inspo: "Inspired by: Carolina Herrera Good Girl 👠", gender: "female" },
+      { name: "Crystal EDP (W)", notes: "Lavender, mandarin, black currant, petitgrain, orange blossom, jasmine, Madagascar vanilla, musk, cedar, ambergris", msrp: "$39.99", inspo: "Inspired by: YSL Libre", gender: "female" },
+      { name: "Bouquet EDP (W)", notes: "Sweet pea, bergamot, peony, damask rose, white musk", msrp: "$39.99", inspo: "Inspired by: Miss Dior Blooming Bouquet 🌸", gender: "female" },
+      { name: "Candy EDP (W)", notes: "Pitahaya, wild berries, pineapple, coconut water, vanilla orchid, ambrette, praline, musk, amberwood, moss", msrp: "$39.99", inspo: "Inspired by: Ariana Grande Cloud Pink ☁️", gender: "female" },
+      { name: "Floral EDP (W)", notes: "Jasmine, tuberose, Rangoon creeper", msrp: "$39.99", inspo: "Inspired by: Gucci Bloom 🌺", gender: "female" },
+      { name: "Fruity EDP (W)", notes: "Pear, melon, freesia, rose, musk, patchouli, rhubarb, amber", msrp: "$33.99", inspo: "Inspired by: Jo Malone English Pear & Freesia", gender: "female" },
+      { name: "Candy Gift Set (W)", notes: "CANDY EDP 100ml + LOVE ADDICT Fragrance Mist 250ml", msrp: "$49.99", inspo: "Best value gift set — two-piece bundle", gender: "female" },
+    ]
+  },
+
+  penguin: {
+    name: "Original Penguin",
+    icon: "🐧",
+    tagline: "American preppy sportswear brand — heritage, wit, and masculine style since 1955",
+    history: `Original Penguin (OPG) was founded in 1955 by Abby Muntz, initially producing sport shirts. The iconic penguin mascot — Pete the Penguin — appeared on the first golf shirt sold to golfer Chet Hanlon, and the brand was born. OPG became synonymous with preppy American sportswear through the 1960s–80s, worn by icons including Clint Eastwood and Elvis Presley.
+
+The brand was revived in the early 2000s as a heritage lifestyle brand and expanded into fragrance as a natural extension of its sophisticated yet playful identity. The fragrance line captures OPG's core pillars: heritage, wit, and masculinity — terms that actually appear in the ICE Blue fragrance description.
+
+The Original Blend, Premium Blend, Iconic Blend, and ICE Blue form the core men's lineup, while Denim rounds out the collection. Each scent is positioned as a modern American classic — accessible, sophisticated, and distinctly masculine without being heavy or cloying. The 4PC Mini Coffret gift sets are a strong showpiece for the brand.`,
+    selling: [
+      { icon: "🐧", text: "<strong>The Penguin Story</strong> — Pete the Penguin has been on sportswear since 1955. Customers with nostalgia for the brand are immediate converts. Elvis and Clint Eastwood wore OPG." },
+      { icon: "🏌️", text: "<strong>Lifestyle Brand Fragrance</strong> — 'This isn't just a scent, it's a lifestyle. Original Penguin is American sportswear heritage in a bottle.'" },
+      { icon: "🧊", text: "<strong>ICE Blue = The Signature</strong> — Aromatic aquatic designed around 'heritage, wit and masculinity.' These three words create a complete customer picture instantly." },
+      { icon: "🎁", text: "<strong>4PC Mini Coffret</strong> — The mini gift set lets customers try all four core scents. Excellent gift and discovery tool." },
+      { icon: "🧴", text: "<strong>Body Spray Pairing</strong> — Every core scent comes with a 6oz deodorizing body spray. Easy add-on upsell at every sale." }
+    ],
+    priceRange: "Various — body spray to full EDT",
+    tiers: "Single wholesale tier",
+    keyProducts: [
+      { name: "Original Blend 3.4 EDT (M)", notes: "Italian bergamot, kaffir lime, clean aquatic notes, crisp apple tonic", msrp: "", inspo: "Classic clean aquatic citrus — the flagship scent", gender: "male" },
+      { name: "Premium Blend 3.4 EDT (M)", notes: "Crisp bergamot, fresh lime peel, wild spearmint — icy, fresh aromatic", msrp: "", inspo: "Icy upgrade from Original Blend — cool spearmint accent", gender: "male" },
+      { name: "Iconic Blend 3.4 EDT (M)", notes: "Fresh aromatic woody — Italian bergamot and crushed violet leaves", msrp: "", inspo: "Woody aromatic — sophisticated and office-appropriate", gender: "male" },
+      { name: "ICE Blue 3.4 EDT (M)", notes: "Aromatic, aquatic — heritage, wit and masculinity", msrp: "", inspo: "The signature aquatic — designed around the brand's core identity", gender: "male" },
+      { name: "Denim 3.4 EDT (M)", notes: "Crisp apple, bergamot, lime, lavender, nutmeg, suede, sandalwood, amber, musk", msrp: "", inspo: "The suede/denim accord perfectly matches the brand aesthetic — casual masculine", gender: "male" },
+      { name: "4PC Mini Coffret", notes: "All 4 core scents in mini format — Original, Premium, Iconic, ICE Blue", msrp: "", inspo: "Perfect discovery/gift set — let customers try before committing", gender: "male" },
+    ]
+  }
+};
+
+// ============================================================
+// ALL PRODUCTS (for flashcards & price game)
+// ============================================================
+const ALL_PRODUCTS = [
+  // TOUS
+  { brand: "TOUS", name: "TOUS 3.0 EDP (W)", msrp: 60, notes: "Brazilian rosewood, red currant, white musk, gardenia", inspo: "", gender: "female" },
+  { brand: "TOUS", name: "TOUS 3.0 EDT (W)", msrp: 55, notes: "Violet leaf, bergamot, cassia, peony, jasmine, rose, white musk, cedar, iris", inspo: "", gender: "female" },
+  { brand: "TOUS", name: "TOUS 3.4 EDT (M)", msrp: 60, notes: "Bergamot, cassia, coriander, jasmine, rose, white musk, cedar, iris", inspo: "", gender: "male" },
+  { brand: "TOUS", name: "TOUS Man Sport 3.4 EDT", msrp: 95, notes: "Amalfi lemon, ginger, red apple, Virginia cedar, cashmere wood, oak moss", inspo: "", gender: "male" },
+  { brand: "TOUS", name: "TOUS Touch the Original Gold 3.4 EDT", msrp: 65, notes: "Lily-of-the-valley, lotus, freesia, jasmine, tiare, blueberry, raspberry, almond, vanilla", inspo: "", gender: "female" },
+  { brand: "TOUS", name: "TOUS Baby 3.4 EDC (U)", msrp: 45, notes: "Mandarin orange, neroli, bergamot, orange blossom, apple, pear, musk, cedar", inspo: "", gender: "unisex" },
+  { brand: "TOUS", name: "TOUS Kids Girl 3.4 EDT", msrp: 45, notes: "Lemon, cupcake, mandarin orange", inspo: "", gender: "female" },
+  { brand: "TOUS", name: "TOUS Kids Boy 3.4 EDT", msrp: 45, notes: "Neroli, clover, mandarin orange, grass, candy apple, licorice, musk", inspo: "", gender: "male" },
+  { brand: "TOUS", name: "TOUS L'Eau de Parfum 3.0 EDP", msrp: 60, notes: "Floral, woody, musky — mandarin, lemon, floral accords", inspo: "", gender: "female" },
+  // Mahaya
+  { brand: "Mahaya", name: "Qasida Gold EDP", msrp: 90, notes: "Grapefruit, lemon, apple, white wood, patchouli, sandalwood, musks, ambroxan, vanilla", inspo: "Inspired by: Thomas Kosmala No.10", gender: "unisex" },
+  { brand: "Mahaya", name: "Qasida Silver EDP", msrp: 90, notes: "Lemon, coconut, apple, red berries, jasmine, violet, ambroxan, vanilla, powdery musks", inspo: "Inspired by: One & Only by GISSAH", gender: "unisex" },
+  { brand: "Mahaya", name: "Qasida Bronze EDP", msrp: 90, notes: "Lemon, warm spices, chocolate, vetiver, sandalwood, leather, amber, vanilla", inspo: "Inspired by: Tom Ford Myrrhe", gender: "unisex" },
+  { brand: "Mahaya", name: "Mashair Classic EDP", msrp: 90, notes: "Bergamot, cardamom, lavender, patchouli, white wood, geranium, vetiver, musks, vanilla", inspo: "Inspired by: Paco Rabanne Phantom Silver", gender: "unisex" },
+  { brand: "Mahaya", name: "Nashwa EDP (W)", msrp: 85, notes: "Coconut, tuberose, orange blossom, sandalwood", inspo: "Inspired by: Midnight Sex by Paco Rabanne", gender: "female" },
+  { brand: "Mahaya", name: "Nashwaan EDP (M)", msrp: 85, notes: "Lavender, bergamot, honey, cinnamon, cashmeran, jasmine sambac, tobacco leaf, vanilla, tonka bean", inspo: "Inspired by: Naxos by Xerjoff", gender: "male" },
+  { brand: "Mahaya", name: "Badiya EDP (W)", msrp: 45, notes: "Red fruits, raspberry, rose, violet, peach, rose geranium, iris, white musk, cedar", inspo: "Inspired by: Chanel Chance Eau Splendide", gender: "female" },
+  { brand: "Mahaya", name: "Zayn EDP (M)", msrp: 45, notes: "Pineapple, iris, ginger, cypress, coconut, tonka bean, sandalwood, amber, ambergris", inspo: "Inspired by: Le Beau by Jean Paul Gaultier", gender: "male" },
+  { brand: "Mahaya", name: "Niyamat Blu EDP (M)", msrp: 50, notes: "Red currant, mandarin orange, pomegranate, damask rose, leather, patchouli, benzoin, amber", inspo: "Inspired by: Games J'Adoube", gender: "male" },
+  { brand: "Mahaya", name: "Laya Gold EDP (W)", msrp: 50, notes: "Hazelnut, cocoa, jasmine sambac, cedar, ambroxan, caramel, musk", inspo: "Inspired by: Blanc Luxe", gender: "female" },
+  { brand: "Mahaya", name: "Kubra Gold EDP (W)", msrp: 50, notes: "Lotus, Amalfi lemon, cassis, rose, jasmine, iris, ylang-ylang, mimosa, sandalwood, vanilla, musk, amber", inspo: "Inspired by: 1 Million Gold Her by Paco Rabanne", gender: "female" },
+  { brand: "Mahaya", name: "Precious Oud EDP (U)", msrp: 50, notes: "Oud, pink pepper, saffron, nutmeg, cedarwood, violet, incense, cistus, amber, sandalwood, patchouli", inspo: "Inspired by: Cherry Oud by Guerlain", gender: "unisex" },
+  { brand: "Mahaya", name: "Saif Brave EDP (M)", msrp: 34, notes: "Cardamom, cedarwood, whitewood, vanillawood, patchouli, ambergris, musk", inspo: "Inspired by: Gissah Martinique Osmanthus", gender: "male" },
+  { brand: "Mahaya", name: "Oud Vanilla EDP (W)", msrp: 34, notes: "Cypriol, black pepper, saffron, cedarwood, amber, caramel, vanilla, sandalwood", inspo: "Inspired by: Aoud Vanille by Mancera", gender: "female" },
+  // John Ashwood
+  { brand: "John Ashwood", name: "Original 120ml EDP (M)", msrp: 49.99, notes: "Grapefruit, bergamot, pink pepper, black currant, pineapple, ginger, cinnamon, cardamom, rose, patchouli, vetiver, sandalwood, musk, tonka", inspo: "Inspired by: CREED AVENTUS 🏆", gender: "male" },
+  { brand: "John Ashwood", name: "Tuscan Rose EDP", msrp: 90, notes: "Rose, pomegranate, violet, ylang-ylang, crystal amber, sandalwood, precious woods", inspo: "Inspired by: YSL Libre", gender: "unisex" },
+  { brand: "John Ashwood", name: "Venetian Red EDP", msrp: 90, notes: "Cherry, tangerine, cinnamon, saffron, cedar, patchouli, plum, leather, vanilla, labdanum", inspo: "Inspired by: Tom Ford Cherry Smoke + Gucci Voice of Snake", gender: "unisex" },
+  { brand: "John Ashwood", name: "Bosphore EDP", msrp: 90, notes: "Saffron, mandarin, rose, benzoin, labdanum, amber, agarwood, patchouli, vanilla", inspo: "Inspired by: Noir de Noir by Tom Ford", gender: "unisex" },
+  { brand: "John Ashwood", name: "Tiramisu EDP", msrp: 90, notes: "Fig, orange, tangerine, peach, pineapple, hazelnut, musk, amber, wood", inspo: "Inspired by: Memo Paris", gender: "unisex" },
+  { brand: "John Ashwood", name: "Favourite 200ml EDP", msrp: 100, notes: "Raspberry, caramel, incense, patchouli, sandalwood, vetiver, vanilla, musks", inspo: "Inspired by: GISSAH LA LUNA", gender: "unisex" },
+  { brand: "John Ashwood", name: "Legacy 200ml EDP", msrp: 100, notes: "Orange, grapefruit, lemon, red berries, mint, basil, rose, musks, ambroxan", inspo: "Inspired by: LV Pacific Chill (Louis Vuitton)", gender: "unisex" },
+  { brand: "John Ashwood", name: "Azure 100ml EDP (M)", msrp: 80, notes: "Pear, bergamot, mandarin, ginger, orange blossom, georgywood, musk, Ambrofix, cedar", inspo: "Inspired by: Blue Talisman by Ex Nihilo (niche)", gender: "male" },
+  { brand: "John Ashwood", name: "Emerald 100ml EDP (M)", msrp: 80, notes: "Black pepper, orange blossom, bourbon vanilla, amber, woody notes, patchouli", inspo: "Inspired by: MYSLF by YSL", gender: "male" },
+  // Louis Olivier
+  { brand: "Louis Olivier", name: "X Bond Gold EDP", msrp: 34, notes: "Grapefruit, tangerine, apple, bergamot, cedarwood, cinnamon, tonka, amber, vanilla, musk, plum", inspo: "Inspired by: 1 Million by Paco Rabanne", gender: "male" },
+  { brand: "Louis Olivier", name: "X Bond Blue EDP", msrp: 34, notes: "Bergamot, apple, birch leaves, lavender, cloves, sandalwood, moss, musk", inspo: "Inspired by: Hugo Boss Bottled Night", gender: "male" },
+  { brand: "Louis Olivier", name: "X Bond Aqua EDP", msrp: 34, notes: "Lime, orange, aldehydic, juniper, ebony, moss, amber", inspo: "Inspired by: Cool Water by Davidoff", gender: "male" },
+  { brand: "Louis Olivier", name: "X Bond Black EDP", msrp: 34, notes: "Cinnamon, pineapple, lemon, praline, apple, patchouli, cedarwood, musk, amber", inspo: "Inspired by: Black XS by Paco Rabanne", gender: "male" },
+  { brand: "Louis Olivier", name: "Dream EDP (W)", msrp: 39.99, notes: "Almond, coffee, bergamot, tuberose, jasmine, rose, orris, tonka, cacao, vanilla, praline, sandalwood", inspo: "Inspired by: Carolina Herrera Good Girl", gender: "female" },
+  { brand: "Louis Olivier", name: "Crystal EDP (W)", msrp: 39.99, notes: "Lavender, mandarin, black currant, orange blossom, jasmine, Madagascar vanilla, musk, cedar, ambergris", inspo: "Inspired by: YSL Libre", gender: "female" },
+  { brand: "Louis Olivier", name: "Bouquet EDP (W)", msrp: 39.99, notes: "Sweet pea, bergamot, peony, damask rose, white musk", inspo: "Inspired by: Miss Dior Blooming Bouquet", gender: "female" },
+  { brand: "Louis Olivier", name: "Candy EDP (W)", msrp: 39.99, notes: "Pitahaya, wild berries, pineapple, coconut water, vanilla orchid, ambrette, praline, musk", inspo: "Inspired by: Ariana Grande Cloud Pink", gender: "female" },
+  { brand: "Louis Olivier", name: "Floral EDP (W)", msrp: 39.99, notes: "Jasmine, tuberose, Rangoon creeper", inspo: "Inspired by: Gucci Bloom", gender: "female" },
+  // Perry Ellis (with MSRP)
+  { brand: "Perry Ellis", name: "PE Midnight 3.4 EDT", msrp: null, notes: "Amber, mandarin, cinnamon, orange blossom, rosemary, geranium, amber, vanilla, tonka bean", inspo: "Warm spicy oriental", gender: "male" },
+  { brand: "Perry Ellis", name: "PE Bold Red 3.4 EDT", msrp: null, notes: "Red apple, finger lime, green leaves, ginger flower, black pepper, musk, mahogany, tonka bean", inspo: "Bold fruity woody with unique finger lime", gender: "male" },
+];
+
+// ============================================================
+// QUIZ QUESTIONS
+// ============================================================
+function buildQuestions(brandFilter) {
+  const all = [
+    // TOUS
+    { brand: 'tous', category: "🐻 TOUS", q: "TOUS was founded in what year and what country?", a: "1920, Spain (Manresa, Catalonia)", options: ["1920, Spain (Manresa, Catalonia)", "1952, France (Paris)", "1978, Italy (Milan)", "1935, Spain (Madrid)"], fact: "TOUS was founded in 1920 in Manresa, Spain by Salvador Tous. It began as a watch repair shop before Rosa Oriol transformed it into a luxury jewelry brand. The teddy bear logo came in 1985." },
+    { brand: 'tous', category: "🐻 TOUS", q: "The iconic TOUS teddy bear logo was created by which person and in what year?", a: "Rosa Oriol (Salvador's wife) in 1985", options: ["Rosa Oriol (Salvador's wife) in 1985", "Salvador Tous Sr. in 1920", "A Milan design agency in 1970", "Their daughter Carmen Tous in 1992"], fact: "Rosa Oriol created the bear logo in 1985. It became one of the most recognized luxury symbols in Spanish fashion and is now sold in over 55 countries." },
+    { brand: 'tous', category: "🐻 TOUS", q: "TOUS Man Sport has the highest MSRP in the men's line. What is it?", a: "$95", options: ["$65", "$80", "$90", "$95"], fact: "TOUS Man Sport (SKU 13727) is $95 MSRP — premium due to its sophisticated Amalfi lemon + cashmere wood profile. Position it as the 'luxury' men's option in the TOUS line." },
+    { brand: 'tous', category: "🐻 TOUS", q: "Which TOUS fragrance uniquely has 'cupcake' as a scent note?", a: "TOUS Kids Girl 3.4 EDT", options: ["TOUS Kids Girl 3.4 EDT", "TOUS Baby Pink Friends", "TOUS Your Moments EDT", "TOUS LoveMe EDP"], fact: "TOUS Kids Girl features Lemon, Cupcake and Mandarin Orange. Playful and sweet — kids love it and parents appreciate the gentle formula at $45 MSRP." },
+    { brand: 'tous', category: "🐻 TOUS", q: "TOUS offers an alcohol-free fragrance. What is it for and why is it important?", a: "TOUS Baby EDC Alcohol Free — safe for very young/sensitive children", options: ["TOUS Baby EDC Alcohol Free — safe for very young/sensitive children", "TOUS Man Sport — sweat-resistant formula", "TOUS L'Eau Parfum — skin-safe formula", "TOUS Touch Gold — lasts longer without alcohol"], fact: "The TOUS Baby Alcohol Free (SKU 1266, $45 MSRP) is a key selling point for parents of newborns and very young children. Lead with this when parents are shopping for baby gifts." },
+    { brand: 'tous', category: "🐻 TOUS", q: "TOUS Touch the Original Gold is the most expensive women's TOUS. What makes it special?", a: "Luxury floral with lily-of-the-valley, lotus, tiare flower, blueberry and raspberry — at $65 MSRP", options: ["Luxury floral with lily-of-the-valley, lotus, tiare flower, blueberry and raspberry — at $65 MSRP", "It's made with real gold flakes — $65 MSRP", "It's a limited edition only available twice a year", "It comes with a gold-plated bottle"], fact: "TOUS Touch the Original Gold (SKU 21871) opens with lily-of-the-valley + lotus + freesia, a jasmine/tiare heart, and a blueberry/raspberry/almond/vanilla base. At $65 MSRP, it's the top women's TOUS." },
+
+    // Halloween / JDP
+    { brand: 'halloween', category: "🎃 Halloween / JDP", q: "Jesus del Pozo was a fashion designer from which country, and when did he found his brand?", a: "Spain (Madrid), 1974", options: ["Spain (Madrid), 1974", "Italy (Rome), 1968", "France (Paris), 1980", "Spain (Barcelona), 1960"], fact: "JDP opened his first boutique in Madrid in 1974 and became one of Spain's most important couturiers. The Halloween fragrance launched in 1997 — over 20 years after the fashion house." },
+    { brand: 'halloween', category: "🎃 Halloween / JDP", q: "The original Halloween EDT (1997) is famous for which unique fragrance profile?", a: "Powdery violet + aquatic sea notes + green banana leaf + petitgrain", options: ["Powdery violet + aquatic sea notes + green banana leaf + petitgrain", "Sweet candy + fruity berries + vanilla musk", "Dark rose + oud + leather", "Fresh citrus + ocean spray + white musk"], fact: "The original Halloween EDT was revolutionary in 1997 — no one was doing powdery violet + aquatic together. It has cult status after 25+ years. Lead with the heritage: 'This is a classic since 1997.'" },
+    { brand: 'halloween', category: "🎃 Halloween / JDP", q: "Halloween Man is legendary for which completely unique top note?", a: "Martini (cocktail) as a top note", options: ["Martini (cocktail) as a top note", "Tobacco and cognac", "Sea spray and driftwood", "Gunpowder and black pepper"], fact: "Halloween Man (SKU 9044) opens with Martini, violet leaf, and mandarin orange. This is probably the ONLY mainstream fragrance with martini as a top note. It's a guaranteed conversation starter." },
+    { brand: 'halloween', category: "🎃 Halloween / JDP", q: "Halloween Magic EDT is inspired by what dessert note?", a: "Pear ice cream and raspberry", options: ["Pear ice cream and raspberry", "Chocolate mousse and caramel", "Strawberry cheesecake", "Lemon sorbet"], fact: "Halloween Magic features pear ice cream, raspberry, and yellow mandarin — a fun, approachable gourmand fruity. Great for younger customers or anyone who likes sweet, playful scents." },
+    { brand: 'halloween', category: "🎃 Halloween / JDP", q: "Which Halloween Men's fragrance is the most affordable entry point and why is that useful?", a: "Halloween Man Rock On — lowest price point, same brand equity", options: ["Halloween Man Rock On — lowest price point, same brand equity", "Halloween Man Mystery — clearance item", "Halloween Blue Drop — entry women's option", "Halloween Blossom — travel size"], fact: "Rock On (SKU 11795) at ~$16.65 Entry wholesale is significantly cheaper than Man/Hero/X at ~$25. It has the same Halloween brand recognition — perfect for price-sensitive customers who still want the name." },
+    { brand: 'halloween', category: "🎃 Halloween / JDP", q: "What is special about Halloween Man Mystery that makes it different from other Halloween Men's?", a: "It is an EDP concentration — longer lasting than the EDT versions", options: ["It is an EDP concentration — longer lasting than the EDT versions", "It comes in a 4.2oz bottle instead of 3.4oz", "It contains actual mystery box samples", "It is a limited edition only sold in October"], fact: "Halloween Man Mystery (SKU 21863) is the only EDP in the Halloween Men's line (others are EDT). EDP = higher fragrance concentration = longer lasting. Use this to justify its pricing to customers." },
+
+    // Perry Ellis
+    { brand: 'perry', category: "🦅 Perry Ellis", q: "Perry Ellis the designer passed away in what year, and what was unique about how he approached fashion?", a: "1986 — known for relaxed, natural-fiber American sportswear — 'accessible luxury'", options: ["1986 — known for relaxed, natural-fiber American sportswear — 'accessible luxury'", "2001 — known for dramatic couture gowns", "1995 — known for streetwear and sneaker culture", "1972 — known for Italian tailoring"], fact: "Perry Ellis (1940-1986) redefined American sportswear with natural fibers and accessible luxury. His 'democratic luxury' philosophy lives on in the fragrance line's quality-to-price positioning." },
+    { brand: 'perry', category: "🦅 Perry Ellis", q: "360 Very Blue Men EDT opens with which three iconic notes?", a: "Italian Bergamot, Frozen White Pear, Spearmint", options: ["Italian Bergamot, Frozen White Pear, Spearmint", "Lavender, Cedarwood, Lime", "Cardamom, Black Pepper, Musk", "Bergamot, Ginger, Apple"], fact: "360 Very Blue is a perennial bestseller. The 'frozen' white pear is what makes it distinctive — crisp, cold, clean. Great comparison: 'If you like Acqua di Giò, you'll love this.'" },
+    { brand: 'perry', category: "🦅 Perry Ellis", q: "PE Bold Red EDT contains a truly rare fruit note that's unique to this fragrance. What is it?", a: "Finger Lime (Australian caviar lime)", options: ["Finger Lime (Australian caviar lime)", "Blood Orange from Sicily", "Kaffir Lime from Thailand", "Yuzu from Japan"], fact: "PE Bold Red contains 'Finger Lime' — an Australian native fruit also called caviar lime. It's a premium, unusual ingredient. Mentioning it makes you sound like a fragrance expert and intrigues customers." },
+    { brand: 'perry', category: "🦅 Perry Ellis", q: "Which Perry Ellis women's fragrance is described as having 'Sparkling Peach Prosecco' as a note?", a: "360 Coral Body Mist / 360 Coral 3.4oz", options: ["360 Coral Body Mist / 360 Coral 3.4oz", "P18 Orchid EDP", "360W EDT Spray", "360 Magnetic Pink"], fact: "360 Coral's body mist contains Italian Bergamot, Sparkling Peach Prosecco, Asian Apple-Pear and Pink Pepper. Sell it as 'a brunch in a bottle' — fun, effervescent, and feminine." },
+    { brand: 'perry', category: "🦅 Perry Ellis", q: "Perry Ellis Midnight EDT has warm base notes perfect for evening. What are they?", a: "Amber, Vanilla, and Tonka Bean", options: ["Amber, Vanilla, and Tonka Bean", "Musk, Sandalwood, Vetiver", "Cedarwood, Patchouli, Moss", "Leather, Oud, Amber"], fact: "PE Midnight (82.1012.77) has Amber, Mandarin, Cinnamon on top; Orange Blossom, Rosemary, Geranium in the heart; Amber, Vanilla, Tonka at the base. Perfect evening and fall fragrance." },
+    { brand: 'perry', category: "🦅 Perry Ellis", q: "The P18 Orchid EDP is part of which sub-line of Perry Ellis, and what makes it stand out?", a: "P18 Women's line — pink orchid + water lily (nymphea) + sandalwood + vanilla base", options: ["P18 Women's line — pink orchid + water lily (nymphea) + sandalwood + vanilla base", "PE Aqua Women's — fresh marine for women", "360 Women's — fruity floral for everyday", "PE Sky Women's — light airy floral"], fact: "P18 Orchid EDP features a stunning pink orchid and nymphea (water lily) heart over sandalwood and vanilla. The orchid + water lily combination is luxurious and romantic — great Valentine's Day fragrance." },
+
+    // Mahaya / HOP
+    { brand: 'mahaya', category: "🕌 Mahaya / HOP", q: "What is 'oud' (agarwood) and why is it valuable?", a: "Resin from infected Aquilaria trees — one of world's most expensive fragrance ingredients, called 'liquid gold'", options: ["Resin from infected Aquilaria trees — one of world's most expensive fragrance ingredients, called 'liquid gold'", "A rare flower from the Himalayas used in luxury perfumes", "A synthetic musk compound created in a lab", "A type of citrus peel from the Arabian Peninsula"], fact: "Oud (agarwood) is extracted when Aquilaria trees react to mold infection by producing a dark, fragrant resin. It can cost $5,000-$100,000+ per kilogram. Mahaya makes authentic oud-inspired fragrances accessible." },
+    { brand: 'mahaya', category: "🕌 Mahaya / HOP", q: "The Mahaya/HOP price list shows 'Fragrance Inspiration' for each product. What is the selling strategy behind this?", a: "Customers see the luxury reference (Chanel, Tom Ford, Creed), feel smart getting a similar experience at far less cost", options: ["Customers see the luxury reference (Chanel, Tom Ford, Creed), feel smart getting a similar experience at far less cost", "It is required by law to disclose inspiration sources", "It helps with SEO on the website", "It is for internal staff reference only and should not be told to customers"], fact: "The 'inspired by' model is powerful: 'This is inspired by Creed Aventus — a $400+ fragrance — and you're getting a similar quality experience for a fraction of the price.' Customers feel clever, not cheap." },
+    { brand: 'mahaya', category: "🕌 Mahaya / HOP", q: "Which Mahaya collection is the absolute premium tier at $90 MSRP and what luxury fragrances inspire it?", a: "Qasida (Gold, Silver, Bronze) — inspired by Thomas Kosmala, Tom Ford, GISSAH", options: ["Qasida (Gold, Silver, Bronze) — inspired by Thomas Kosmala, Tom Ford, GISSAH", "Mashair — inspired by Armani and Dior", "Nashwa — inspired by Chanel and YSL", "Kubra — inspired by Paco Rabanne and Amouage"], fact: "Qasida (Gold, Silver, Bronze) all retail at $90 MSRP. Qasida Bronze is inspired by Tom Ford Myrrhe, Gold by Thomas Kosmala No.10, Silver by One&Only by GISSAH — genuinely niche luxury references." },
+    { brand: 'mahaya', category: "🕌 Mahaya / HOP", q: "Mahaya Nashwaan EDP (Men, $85 MSRP) is inspired by which extremely prestigious niche fragrance?", a: "Naxos by Xerjoff — one of the world's most revered niche houses", options: ["Naxos by Xerjoff — one of the world's most revered niche houses", "Bleu de Chanel EDP", "Sauvage by Dior", "Armani Code Absolu"], fact: "Naxos by Xerjoff retails for $300-$500+. It's a legendary lavender-honey-tonka tobacco masterpiece. Mahaya Nashwaan brings that character at $85 MSRP — a compelling value story for knowledgeable customers." },
+    { brand: 'mahaya', category: "🕌 Mahaya / HOP", q: "Mahaya Badiya EDP (Women) is inspired by a 2024 Chanel release. Which one?", a: "Chanel Chance Eau Splendide", options: ["Chanel Chance Eau Splendide", "Chanel N°5 L'Eau", "Chanel Coco Mademoiselle", "Chanel Gabrielle EDP"], fact: "Mahaya Badiya is inspired by Chanel Chance Eau Splendide — a newer addition to the Chanel Chance family. Red fruits, raspberry, rose, violet, and peach at $45 MSRP vs. $135+ for the Chanel." },
+    { brand: 'mahaya', category: "🕌 Mahaya / HOP", q: "The Mahaya Saif line starts at $34 MSRP. What makes the Saif Gentle unique?", a: "Inspired by Penhaligon's 'The Tragedy of Lord George' — one of Britain's most prestigious niche houses", options: ["Inspired by Penhaligon's 'The Tragedy of Lord George' — one of Britain's most prestigious niche houses", "It's the only alcohol-free oud in the range", "It contains real oud chips in the bottle", "It's the only women's scent in the Saif line"], fact: "Penhaligon's is a prestigious British perfumer with Royal Warrants. 'The Tragedy of Lord George' retails at $200+. Saif Gentle (lavender, cardamom, guaiac wood, tonka) brings that DNA at $34 — great value pitch." },
+    { brand: 'mahaya', category: "🕌 Mahaya / HOP", q: "For a customer new to Arabic fragrance who loves sweet vanilla, which Mahaya product is the best entry point?", a: "Oud Vanilla EDP — oud softened by cypriol, caramel and sandalwood base", options: ["Oud Vanilla EDP — oud softened by cypriol, caramel and sandalwood base", "Glorious Oud Musk — clean and light oud", "Saif Brave — fresh and woody", "Qasida Bronze — warm spicy premium"], fact: "Oud Vanilla bridges the gap perfectly — customers familiar with sweet vanilla orientals can discover oud through a familiar, comforting lens. Inspired by Aoud Vanille by Mancera. Gateway oud strategy." },
+
+    // John Ashwood
+    { brand: 'ashwood', category: "🏛️ John Ashwood", q: "John Ashwood Original 120ml EDP is openly inspired by which legendary men's fragrance?", a: "CREED AVENTUS — one of the world's most coveted men's fragrances ($400-$500+)", options: ["CREED AVENTUS — one of the world's most coveted men's fragrances ($400-$500+)", "Bleu de Chanel EDP", "Dior Sauvage", "Tom Ford Oud Wood"], fact: "Creed Aventus is perhaps the most talked-about men's fragrance in the world — pineapple, blackcurrant, birch, ambergris. John Ashwood Original mirrors this profile at ~$50 MSRP. This comparison closes sales instantly." },
+    { brand: 'ashwood', category: "🏛️ John Ashwood", q: "The John Ashwood Tuscan Collection is priced at what MSRP, and what is the wholesale cost?", a: "$90 MSRP / $14.85 wholesale — outstanding margin", options: ["$90 MSRP / $14.85 wholesale — outstanding margin", "$50 MSRP / $20 wholesale", "$120 MSRP / $30 wholesale", "$70 MSRP / $22 wholesale"], fact: "The Tuscan Collection ($14.85 wholesale, $90 MSRP) has one of the best margin stories in the catalog. The $75+ markup makes it a priority product to push at trade shows and retail." },
+    { brand: 'ashwood', category: "🏛️ John Ashwood", q: "John Ashwood Legacy 200ml EDP is inspired by a Louis Vuitton fragrance. Which one?", a: "LV Pacific Chill — a fresh, minty, aquatic LV creation", options: ["LV Pacific Chill — a fresh, minty, aquatic LV creation", "LV L'Immensité", "LV Ombre Nomade", "LV Attrape-Rêves"], fact: "LV Pacific Chill ($395+ for 100ml) is an LV fragrance with orange, grapefruit, lemon, red berries, and mint. John Ashwood Legacy mirrors this profile in a 200ml bottle at $100 MSRP — incredible value pitch." },
+    { brand: 'ashwood', category: "🏛️ John Ashwood", q: "John Ashwood Venetian Red EDP takes inspiration from TWO luxury fragrances simultaneously. Name them.", a: "Tom Ford Cherry Smoke + Gucci Voice of Snake", options: ["Tom Ford Cherry Smoke + Gucci Voice of Snake", "YSL Libre + Chanel Chance", "Dior Poison + Hermès Twilly", "Creed Love in White + Jo Malone Peony"], fact: "Venetian Red (cherry, tangerine, cinnamon, saffron, leather, vanilla) draws from both Tom Ford and Gucci DNA. Dual inspiration = broader appeal and richer storytelling." },
+    { brand: 'ashwood', category: "🏛️ John Ashwood", q: "What are the John Ashwood 5PC Gift Sets and how are they organized?", a: "Red, White, Black, Brown sets — each 5x20ml minis of thematic Tuscan fragrances at $70 MSRP", options: ["Red, White, Black, Brown sets — each 5x20ml minis of thematic Tuscan fragrances at $70 MSRP", "Single 100ml EDP + matching lotion + soap set", "4PC discovery kits of 5ml sample vials", "Large 200ml bottles in gift boxes"], fact: "The gift sets group the Tuscan Collection by color theme (Red=warm/bold, White=fresh/clean, Black=dark/mysterious, Brown=200ml range). $22.05 wholesale for 5 products at $70 MSRP is exceptional value." },
+
+    // Louis Olivier
+    { brand: 'louis', category: "💎 Louis Olivier", q: "Louis Olivier X Bond Gold is inspired by which wildly popular Paco Rabanne fragrance?", a: "1 Million by Paco Rabanne", options: ["1 Million by Paco Rabanne", "Invictus by Paco Rabanne", "Phantom by Paco Rabanne", "Ultraviolet by Paco Rabanne"], fact: "1 Million is one of the bestselling men's fragrances globally — grapefruit, cinnamon, wood, leather, patchouli. Louis Olivier X Bond Gold mirrors this profile at $34 MSRP vs. $100+ for 1 Million. Easy sell." },
+    { brand: 'louis', category: "💎 Louis Olivier", q: "Louis Olivier Dream EDP (W) is inspired by which iconic Carolina Herrera fragrance?", a: "Good Girl by Carolina Herrera", options: ["Good Girl by Carolina Herrera", "212 Sexy by Carolina Herrera", "CH Carolina Herrera EDP", "Very Good Girl by Carolina Herrera"], fact: "Good Girl ($135+) is known for its almond, coffee, tuberose, and jasmine sambac notes over a sweet tonka and praline base. Louis Olivier Dream replicates this complex profile at $39.99 MSRP." },
+    { brand: 'louis', category: "💎 Louis Olivier", q: "What is the Louis Olivier women's Gift Set structure and why is it a great margin play?", a: "EDP 100ml + Fragrance Mist 250ml at $9 wholesale / $49.99 MSRP", options: ["EDP 100ml + Fragrance Mist 250ml at $9 wholesale / $49.99 MSRP", "EDP + mini EDP travel spray at $15 wholesale", "3PC set with EDP, lotion, and shower gel at $12", "2x EDP bottles at $14 wholesale"], fact: "The gift sets pair a full EDP with a large 250ml mist at $9 wholesale and $49.99 MSRP. That's ~$41 margin per set. The mist adds physical bulk that makes the gift feel premium and luxurious." },
+    { brand: 'louis', category: "💎 Louis Olivier", q: "Louis Olivier X Bond Aqua is inspired by which legendary men's classic?", a: "Cool Water by Davidoff (1988)", options: ["Cool Water by Davidoff (1988)", "Acqua di Giò by Armani", "Polo Blue by Ralph Lauren", "Chrome by Azzaro"], fact: "Cool Water (1988) by Davidoff is one of the most iconic aquatic men's fragrances ever made. X Bond Aqua brings that clean lime-orange-aldehydic-moss profile at $34 MSRP vs. $60+ for Cool Water." },
+    { brand: 'louis', category: "💎 Louis Olivier", q: "The Louis Olivier Fragrance Mist line is inspired by which popular women's fragrance brand?", a: "Victoria's Secret", options: ["Victoria's Secret", "Bath & Body Works", "Sol de Janeiro", "Ariana Grande"], fact: "Every Louis Olivier Fragrance Mist has a Victoria's Secret counterpart (Love Spell, Bare Vanilla, Pure Seduction, etc.). Great cross-sell: 'If you love Victoria's Secret, these are your match at a better price.'" },
+
+    // Original Penguin
+    { brand: 'penguin', category: "🐧 Original Penguin", q: "Original Penguin was founded in what year and what product launched the brand?", a: "1955 — a golf shirt sold to golfer Chet Hanlon with the first penguin mascot", options: ["1955 — a golf shirt sold to golfer Chet Hanlon with the first penguin mascot", "1972 — a line of polo shirts for Ivy League students", "1938 — a men's swimwear line for country clubs", "1960 — a tennis sportswear collection"], fact: "OPG's Pete the Penguin appeared on the very first shirt sold in 1955. Elvis Presley and Clint Eastwood famously wore OPG. This heritage story gives the fragrance credibility and nostalgia appeal." },
+    { brand: 'penguin', category: "🐧 Original Penguin", q: "Original Penguin ICE Blue is built around which three brand identity words?", a: "Heritage, Wit, and Masculinity", options: ["Heritage, Wit, and Masculinity", "Fresh, Clean, Modern", "Bold, Sporty, Athletic", "Classic, Timeless, Elegant"], fact: "ICE Blue's description literally includes 'heritage, wit and masculinity' — these three words are the brand's core identity. Use them when selling: 'This fragrance is the brand in a bottle.'" },
+    { brand: 'penguin', category: "🐧 Original Penguin", q: "Original Penguin Denim EDT has a note that perfectly matches the fragrance name. Which is it?", a: "Suede (in the heart notes)", options: ["Suede (in the heart notes)", "Cotton accord (synthetic textile note)", "Ink on fabric note", "Denim accord"], fact: "Denim opens with crisp apple, bergamot, lime — but the genius is the suede heart note alongside lavender and nutmeg. Suede is a tactile, textile-like note that subtly evokes denim. Perfect brand storytelling." },
+    { brand: 'penguin', category: "🐧 Original Penguin", q: "What is Kaffir Lime and why is it notable in Original Penguin Original Blend?", a: "A Southeast Asian citrus with a uniquely aromatic zest — more complex than regular lime", options: ["A Southeast Asian citrus with a uniquely aromatic zest — more complex than regular lime", "A type of bitter lime from California used in cocktails", "A synthetic lime accord named after a German chemist", "A rare African lime flower used in expensive perfumery"], fact: "Kaffir lime (also called Makrut lime) is from Southeast Asia with exceptionally aromatic leaves and zest. Using this specific lime in Original Blend elevates it beyond generic citrus — a great point of differentiation." },
+
+    // Cross-brand selling
+    { brand: 'all', category: "🛍️ Sales Strategy", q: "A customer loves Tom Ford but says the price is too high. Which products do you recommend?", a: "John Ashwood Bosphore (inspired by Noir de Noir TF) or Qasida Bronze (inspired by TF Myrrhe)", options: ["John Ashwood Bosphore (inspired by Noir de Noir TF) or Qasida Bronze (inspired by TF Myrrhe)", "TOUS Man Sport — similar prestige positioning", "Louis Olivier X Bond Black — dark and smoky", "Perry Ellis Midnight — warm and sophisticated"], fact: "When a customer references Tom Ford, pivot immediately to John Ashwood Tuscan Collection or Mahaya Qasida — both have Tom Ford-inspired options and the $90 MSRP maintains luxury perception at half the cost." },
+    { brand: 'all', category: "🛍️ Sales Strategy", q: "A customer wants a gift for a new baby. What do you recommend and what's your key selling point?", a: "TOUS Baby EDC — and specifically mention the Alcohol-Free option for newborns", options: ["TOUS Baby EDC — and specifically mention the Alcohol-Free option for newborns", "Louis Olivier Dream EDP — sweet and gentle", "Mahaya Laya Fresh — clean and soft", "Perry Ellis 360W — light and fresh"], fact: "TOUS Baby is the only line specifically designed for infants and children. The alcohol-free version (SKU 1266) removes the last barrier for parents of newborns. Lead with safety: 'It's formulated for baby-sensitive skin.'" },
+    { brand: 'all', category: "🛍️ Sales Strategy", q: "Which brand-line combination gives you the best SINGLE wholesale-to-MSRP margin in the catalog?", a: "John Ashwood Tuscan Collection — $14.85 wholesale vs. $90 MSRP", options: ["John Ashwood Tuscan Collection — $14.85 wholesale vs. $90 MSRP", "Louis Olivier X Bond — $6 wholesale vs. $34 MSRP", "Mahaya Qasida — $28.35 wholesale vs. $90 MSRP", "TOUS Touch Gold — ~$26 wholesale vs. $65 MSRP"], fact: "John Ashwood Tuscan Collection at $14.85 wholesale / $90 MSRP is a ~6x markup — the highest ratio in the catalog. This should be a priority sell whenever customers are looking for luxury-positioned gifting." },
+    { brand: 'all', category: "🌿 Scent Knowledge", q: "A customer describes wanting something 'deep, warm, and exotic that lasts all day.' Which brand family is the best fit?", a: "Mahaya/HOP — Arabic EDP orientals are concentrated and extremely long-lasting", options: ["Mahaya/HOP — Arabic EDP orientals are concentrated and extremely long-lasting", "TOUS Baby — gentle and long-lasting", "Louis Olivier Fragrance Mists — body spray longevity", "Perry Ellis 360 Very Blue — clean fresh longevity"], fact: "Arabic-style EDPs use heavy base notes (oud, amber, resins, musks) that are specifically designed to project and last. 'One spray of a Mahaya or HOP fragrance can last 8-12 hours on skin.' This is a genuine competitive advantage." },
+  ];
+
+  if (brandFilter === 'all') return shuffle(all).slice(0, 20);
+  const filtered = all.filter(q => q.brand === brandFilter || q.brand === 'all');
+  return shuffle(filtered).slice(0, Math.min(15, filtered.length));
+}
+
+// ============================================================
+// STATE
+// ============================================================
+let state = {
+  mode: null, brandKey: 'all',
+  questions: [], currentQ: 0, score: 0, streak: 0, correct: 0, wrong: 0, totalQ: 20,
+  fcIndex: 0, fcKnew: 0, fcMissed: 0, fcCards: [],
+  pgIndex: 0, pgScore: 0, pgAnswered: false, pgProducts: [],
+  studyBrand: 'tous', studyTab: 'overview'
+};
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+function showScreen(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+function goHome() { document.getElementById('brandQuizPicker').style.display = 'none'; showScreen('home'); }
+
+function showBrandQuizPicker() {
+  const el = document.getElementById('brandQuizPicker');
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+// ============================================================
+// BRAND STUDY
+// ============================================================
+function openStudy(brandKey) {
+  state.studyBrand = brandKey;
+  state.studyTab = 'overview';
+  renderStudy();
+  showScreen('brandstudy');
+}
+
+function startQuizFromStudy() { startQuiz(state.studyBrand); }
+
+function renderStudy() {
+  const brand = BRANDS[state.studyBrand];
+  const tabs = ['overview', 'selling', 'products'];
+  const tabLabels = { overview: '📖 Brand Story', selling: '💬 Selling Tips', products: '🧴 Products' };
+
+  document.getElementById('studyNav').innerHTML = tabs.map(t =>
+    `<button class="study-tab ${state.studyTab === t ? 'active' : ''}" onclick="setStudyTab('${t}')">${tabLabels[t]}</button>`
+  ).join('');
+
+  let content = '';
+  if (state.studyTab === 'overview') {
+    content = `
+      <div class="brand-hero">
+        <div class="brand-hero-name">${brand.icon} ${brand.name}</div>
+        <div class="brand-hero-tagline">${brand.tagline}</div>
+        <div class="brand-stats">
+          <div class="brand-stat"><div class="stat-val">${brand.priceRange}</div><div class="stat-lbl">MSRP Range</div></div>
+          <div class="brand-stat"><div class="stat-val">${brand.keyProducts.length}+</div><div class="stat-lbl">Key SKUs</div></div>
+        </div>
+      </div>
+      <div class="brand-history">
+        <h3>📚 Brand History</h3>
+        ${brand.history.split('\n\n').map(p => `<p>${p.trim()}</p>`).join('')}
+      </div>`;
+  } else if (state.studyTab === 'selling') {
+    content = `
+      <div class="brand-history" style="margin-bottom:1rem;">
+        <h3>💰 Pricing</h3>
+        <p>${brand.priceRange} MSRP &nbsp;·&nbsp; ${brand.tiers}</p>
+      </div>
+      <div class="brand-history">
+        <h3>💬 Key Selling Points</h3>
+      </div>
+      <div class="selling-points" style="margin-top:0.8rem;">
+        ${brand.selling.map(s => `
+          <div class="selling-point">
+            <div class="sp-icon">${s.icon}</div>
+            <div class="sp-text">${s.text}</div>
+          </div>`).join('')}
+      </div>`;
+  } else if (state.studyTab === 'products') {
+    content = `<div class="product-list-study">
+      ${brand.keyProducts.map(p => `
+        <div class="pls-item">
+          <div class="pls-name">${p.name}</div>
+          <div class="pls-notes">🌿 ${p.notes}</div>
+          ${p.inspo ? `<div class="pls-inspo">✨ ${p.inspo}</div>` : ''}
+          <div class="pls-badges">
+            ${p.msrp ? `<span class="pls-badge" style="color:var(--gold);border-color:rgba(201,168,76,0.4)">MSRP ${p.msrp}</span>` : ''}
+            <span class="pls-badge ${p.gender}">${p.gender === 'female' ? 'Women\'s' : p.gender === 'male' ? 'Men\'s' : 'Unisex'}</span>
+          </div>
+        </div>`).join('')}
+    </div>`;
+  }
+  document.getElementById('studyContent').innerHTML = content;
+}
+
+function setStudyTab(tab) { state.studyTab = tab; renderStudy(); }
+
+// ============================================================
+// QUIZ
+// ============================================================
+function startQuiz(brandKey) {
+  state.brandKey = brandKey;
+  state.score = 0; state.streak = 0; state.correct = 0; state.wrong = 0; state.currentQ = 0;
+  state.questions = buildQuestions(brandKey);
+  state.totalQ = state.questions.length;
+  document.getElementById('qTotal').textContent = state.totalQ;
+  showScreen('quiz');
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const q = state.questions[state.currentQ];
+  const pct = (state.currentQ / state.totalQ) * 100;
+  document.getElementById('qProgress').style.width = pct + '%';
+  document.getElementById('qNum').textContent = state.currentQ + 1;
+  document.getElementById('qScore').textContent = state.score;
+  document.getElementById('qCategory').textContent = q.category;
+  document.getElementById('qText').textContent = q.q;
+  document.getElementById('feedbackBox').style.display = 'none';
+  document.getElementById('nextBtn').style.display = 'none';
+
+  const grid = document.getElementById('optionsGrid');
+  grid.innerHTML = '';
+  shuffle(q.options).forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.textContent = opt;
+    btn.onclick = () => selectAnswer(opt, q);
+    grid.appendChild(btn);
+  });
+}
+
+function selectAnswer(selected, q) {
+  const correct = selected === q.a;
+  document.querySelectorAll('.option-btn').forEach(btn => {
+    btn.disabled = true;
+    if (btn.textContent === q.a) btn.classList.add('correct');
+    else if (btn.textContent === selected && !correct) btn.classList.add('wrong');
+  });
+  const fb = document.getElementById('feedbackBox');
+  fb.className = 'feedback-box' + (correct ? '' : ' wrong-fb');
+  fb.style.display = 'block';
+  document.getElementById('fbTitle').textContent = correct ? '✓ Correct!' : '✗ Not quite!';
+  document.getElementById('fbText').textContent = q.fact;
+  if (correct) { state.streak++; state.correct++; state.score += state.streak >= 3 ? 150 : 100; if (state.streak >= 3) showStreak(); }
+  else { state.streak = 0; state.wrong++; document.getElementById('streakBadge').style.display = 'none'; }
+  document.getElementById('qScore').textContent = state.score;
+  document.getElementById('nextBtn').style.display = 'block';
+}
+
+function showStreak() {
+  const badge = document.getElementById('streakBadge');
+  document.getElementById('streakCount').textContent = state.streak;
+  badge.style.display = 'block';
+  setTimeout(() => badge.style.display = 'none', 2000);
+}
+
+function nextQuestion() {
+  state.currentQ++;
+  if (state.currentQ >= state.questions.length) showResults();
+  else renderQuestion();
+}
+
+// ============================================================
+// FLASHCARDS
+// ============================================================
+function startFlashcards() {
+  state.fcIndex = 0; state.fcKnew = 0; state.fcMissed = 0;
+  state.fcCards = shuffle([...ALL_PRODUCTS]).slice(0, 30);
+  document.getElementById('fcTotal').textContent = state.fcCards.length;
+  showScreen('flashcard');
+  renderFlashcard();
+}
+
+function renderFlashcard() {
+  const p = state.fcCards[state.fcIndex];
+  document.getElementById('fcNum').textContent = state.fcIndex + 1;
+  document.getElementById('fcKnew').textContent = state.fcKnew;
+  document.getElementById('fcMissed').textContent = state.fcMissed;
+  document.getElementById('fcFront').textContent = p.name;
+  document.getElementById('fcBrand').textContent = p.brand.toUpperCase();
+  document.getElementById('fcBack').textContent = p.name;
+  document.getElementById('fcBackSub').innerHTML =
+    `<strong style="color:var(--gold)">Brand:</strong> ${p.brand}<br>` +
+    `<strong style="color:var(--gold)">Notes:</strong> ${p.notes}<br>` +
+    (p.msrp ? `<strong style="color:var(--gold)">MSRP:</strong> $${p.msrp}<br>` : '') +
+    `<strong style="color:var(--gold)">For:</strong> ${p.gender === 'female' ? 'Women' : p.gender === 'male' ? 'Men' : 'Unisex'}`;
+  document.getElementById('fcInspo').textContent = p.inspo || '';
+  document.getElementById('fcInner').classList.remove('flipped');
+}
+
+function flipCard() { document.getElementById('fcInner').classList.toggle('flipped'); }
+
+function fcAnswer(knew) {
+  if (knew) state.fcKnew++; else state.fcMissed++;
+  state.fcIndex++;
+  if (state.fcIndex >= state.fcCards.length) {
+    state.score = state.fcKnew * 10; state.correct = state.fcKnew; state.wrong = state.fcMissed; state.totalQ = state.fcCards.length; state.mode = 'flashcard'; showResults();
+  } else renderFlashcard();
+}
+
+// ============================================================
+// PRICE GAME
+// ============================================================
+function startPriceGame() {
+  const priced = ALL_PRODUCTS.filter(p => p.msrp && p.msrp >= 10);
+  state.pgProducts = shuffle(priced).slice(0, 15);
+  state.pgIndex = 0; state.pgScore = 0; state.pgAnswered = false;
+  document.getElementById('pgTotal').textContent = Math.min(15, state.pgProducts.length);
+  showScreen('pricegame'); renderPriceQ();
+}
+
+function renderPriceQ() {
+  const p = state.pgProducts[state.pgIndex];
+  document.getElementById('pgProgress').style.width = ((state.pgIndex / state.pgProducts.length) * 100) + '%';
+  document.getElementById('pgNum').textContent = state.pgIndex + 1;
+  document.getElementById('pgScore').textContent = state.pgScore;
+  document.getElementById('pgBrand').textContent = p.brand.toUpperCase();
+  document.getElementById('pgName').textContent = p.name;
+  document.getElementById('pgNotes').textContent = p.notes;
+  document.getElementById('pgInspo').textContent = p.inspo || '';
+  document.getElementById('pgInput').value = '';
+  document.getElementById('pgInput').disabled = false;
+  document.getElementById('pgResult').style.display = 'none';
+  document.getElementById('pgNextBtn').style.display = 'none';
+  state.pgAnswered = false;
+  setTimeout(() => document.getElementById('pgInput').focus(), 100);
+}
+
+function submitPrice() {
+  if (state.pgAnswered) return;
+  const p = state.pgProducts[state.pgIndex];
+  const guess = parseFloat(document.getElementById('pgInput').value);
+  if (isNaN(guess)) return;
+  state.pgAnswered = true;
+  document.getElementById('pgInput').disabled = true;
+  const diff = Math.abs(guess - p.msrp);
+  const result = document.getElementById('pgResult');
+  result.style.display = 'block';
+  if (diff === 0) { result.className = 'price-result correct-price'; result.textContent = `🎯 Perfect! MSRP is exactly $${p.msrp}. +100 pts`; state.pgScore += 100; }
+  else if (diff <= 3) { result.className = 'price-result close-price'; result.textContent = `🔥 So close! MSRP is $${p.msrp} (you were $${diff.toFixed(0)} off). +50 pts`; state.pgScore += 50; }
+  else if (diff <= 8) { result.className = 'price-result close-price'; result.textContent = `👌 Almost! MSRP is $${p.msrp} (off by $${diff.toFixed(0)}). +20 pts`; state.pgScore += 20; }
+  else { result.className = 'price-result wrong-price'; result.textContent = `📌 MSRP is $${p.msrp} — you guessed $${guess.toFixed(0)}. Keep practicing!`; }
+  document.getElementById('pgScore').textContent = state.pgScore;
+  document.getElementById('pgNextBtn').style.display = 'block';
+}
+
+function nextPrice() {
+  state.pgIndex++;
+  if (state.pgIndex >= state.pgProducts.length || state.pgIndex >= 15) {
+    state.score = state.pgScore; state.correct = state.pgScore; state.mode = 'price'; state.totalQ = Math.min(15, state.pgProducts.length); showResults();
+  } else renderPriceQ();
+}
+
+document.getElementById('pgInput').addEventListener('keydown', e => { if (e.key === 'Enter') { if (!state.pgAnswered) submitPrice(); else nextPrice(); } });
+
+// ============================================================
+// RESULTS
+// ============================================================
+function showResults() {
+  showScreen('results');
+  state.mode = state.mode || 'trivia';
+  const pct = state.mode === 'price' ? Math.round((state.pgScore / (state.totalQ * 100)) * 100) : Math.round((state.correct / state.totalQ) * 100);
+  let grade, trophy;
+  if (pct >= 90) { grade = '🏆 Fragrance Expert'; trophy = '🏆'; }
+  else if (pct >= 75) { grade = '🥇 Senior Sales Pro'; trophy = '🥇'; }
+  else if (pct >= 60) { grade = '🥈 Floor Ready'; trophy = '🥈'; }
+  else if (pct >= 40) { grade = '🥉 Keep Practicing'; trophy = '🥉'; }
+  else { grade = '📚 Training Mode'; trophy = '📚'; }
+  document.getElementById('resTrophy').textContent = trophy;
+  document.getElementById('resGrade').textContent = grade;
+  if (state.mode === 'price') {
+    document.getElementById('resFinalScore').textContent = state.pgScore + ' pts';
+    document.getElementById('resBreakdown').innerHTML = `<div class="rb-row"><span>Products Tested</span><span class="rb-val">${state.totalQ}</span></div><div class="rb-row"><span>Points Scored</span><span class="rb-val">${state.pgScore}</span></div><div class="rb-row"><span>Accuracy</span><span class="rb-val">${pct}%</span></div>`;
+  } else if (state.mode === 'flashcard') {
+    document.getElementById('resFinalScore').textContent = state.correct + ' / ' + state.totalQ;
+    document.getElementById('resBreakdown').innerHTML = `<div class="rb-row"><span>Got it!</span><span class="rb-val" style="color:var(--green)">${state.correct}</span></div><div class="rb-row"><span>Missed</span><span class="rb-val" style="color:#f09090">${state.wrong}</span></div><div class="rb-row"><span>Rate</span><span class="rb-val">${pct}%</span></div>`;
+  } else {
+    document.getElementById('resFinalScore').textContent = state.score + ' pts';
+    document.getElementById('resBreakdown').innerHTML = `<div class="rb-row"><span>Correct</span><span class="rb-val" style="color:var(--green)">${state.correct}</span></div><div class="rb-row"><span>Wrong</span><span class="rb-val" style="color:#f09090">${state.wrong}</span></div><div class="rb-row"><span>Accuracy</span><span class="rb-val">${pct}%</span></div><div class="rb-row"><span>Streak Bonus</span><span class="rb-val">🔥 ${state.streak}</span></div><div class="rb-row"><span>Total Points</span><span class="rb-val">${state.score}</span></div>`;
+  }
+}
+
+function playAgain() {
+  if (state.mode === 'flashcard') startFlashcards();
+  else if (state.mode === 'price') startPriceGame();
+  else startQuiz(state.brandKey);
+}
+
+function shuffle(arr) { const a=[...arr]; for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a; }
+</script>
+</body>
+</html>
